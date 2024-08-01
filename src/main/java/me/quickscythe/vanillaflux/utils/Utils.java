@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.internal.utils.JDALogger;
+import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,8 +20,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Utils {
 
-        private static SqlDatabase core;
+    private static SqlDatabase core;
     private static JDA api;
+    public static final Logger LOG = JDALogger.getLog(JDA.class);
+
 
     public static void init(JDA api) {
         Utils.api = api;
@@ -32,6 +36,37 @@ public class Utils {
 
     public static JDA getApi() {
         return api;
+    }
+
+    public static Logger getLogger(){
+        return LOG;
+    }
+
+    public static void log(String message){
+        log(message, false);
+    }
+
+    public static void log(String message, boolean logToDiscord){
+        LOG.info(message);
+        if(logToDiscord) Utils.getLogsChannel().sendMessage("INFO: " + message).queue();
+    }
+
+    public static void error(String message){
+        error(message, false);
+    }
+
+    public static void error(String message, boolean logToDiscord){
+        LOG.error(message);
+        if(logToDiscord) Utils.getLogsChannel().sendMessage("ERROR: " + message).queue();
+    }
+
+    public static void warn(String message){
+        warn(message, false);
+    }
+
+    public static void warn(String message, boolean logToDiscord){
+        LOG.warn(message);
+        if(logToDiscord) Utils.getLogsChannel().sendMessage("WARN: " + message).queue();
     }
 
     public static Guild getGuild() {
@@ -60,7 +95,7 @@ public class Utils {
             long now = new Date().getTime();
             Role role = Utils.getInactiveRole();
             if (role == null) {
-                Utils.getLogsChannel().sendMessage("There was an error finding the `inactive` role.").queue();
+                log("There was an error finding the `inactive` role.", true);
                 return;
             }
             while (rs.next()) {
@@ -71,20 +106,20 @@ public class Utils {
                     userId = -1;
                 }
                 if (userId == -1) {
-                    Utils.getLogsChannel().sendMessage("Error finding user. (" + rs.getString("discord_id") + ")").queue();
+                    log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                     return;
                 }
                 Member member = getGuild().retrieveMemberById(userId).complete();
                 if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
                     if (member != null) {
                         getGuild().addRoleToMember(member, role).complete();
-                        Utils.getLogsChannel().sendMessage(member.getEffectiveName() + " has been made inactive.").queue();
+                        log(member.getEffectiveName() + " has been made inactive.", true);
                     } else getCommandsChannel().sendMessage("Error..").queue();
                 } else {
 
                     if (member.getRoles().contains(role)) {
                         getGuild().removeRoleFromMember(member, role).complete();
-                        Utils.getLogsChannel().sendMessage(member.getEffectiveName() + " has been made active again").queue();
+                        log(member.getEffectiveName() + " has been made active again", true);
                     }
                 }
             }
