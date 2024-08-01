@@ -26,28 +26,32 @@ public class Bot {
     public static final long INACTIVE_DAYS_TIMER = 1;
     private static String BOT_TOKEN;
 
-    public static void main(String[] args) throws IOException {
-        File token = new File("token");
-        if(!token.exists())
-            token.createNewFile();
-        BufferedReader reader = new BufferedReader(new FileReader("token"));
-        StringBuilder stringBuilder = new StringBuilder();
-        String line = null;
-        String ls = System.getProperty("line.separator");
-        while ((line = reader.readLine()) != null) {
-            stringBuilder.append(line);
-        }
-// delete the last new line separator
-        reader.close();
-
-        BOT_TOKEN = stringBuilder.toString();
-
-        System.out.println(BOT_TOKEN);
-
+    public static void main(String[] args) {
+        BOT_TOKEN = loadToken();
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
         Utils.init(api);
         api.addEventListener(new MessageListener());
 
+    }
+
+    private static String loadToken() {
+        try {
+            File token = new File("token");
+            if (!token.exists()) if(token.createNewFile()){
+                throw new RuntimeException("Token file generated. Please enter your token before launch.");
+            }
+            BufferedReader reader = new BufferedReader(new FileReader("token"));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            reader.close();
+
+            return stringBuilder.toString();
+        } catch (IOException ex){
+            throw new RuntimeException("Token File couldn't be generated or accessed...");
+        }
     }
 
     public static long getInactiveEpochTime() {
