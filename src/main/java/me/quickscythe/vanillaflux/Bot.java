@@ -23,7 +23,7 @@ public class Bot {
     public static final long LOG_CHANNEL = 1268006180626628690L;
     public static final long GUILD_ID = 1140468525190877206L;
     public static final long INACTIVE_ROLE = 1226923455648104559L;
-    public static final long INACTIVE_DAYS_TIMER = 1;
+    public static final long INACTIVE_DAYS_TIMER = 90;
     private static String BOT_TOKEN;
 
     public static void main(String[] args) {
