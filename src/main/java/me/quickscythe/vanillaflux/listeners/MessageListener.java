@@ -29,6 +29,7 @@ public class MessageListener extends ListenerAdapter {
         // getContentRaw() is an atomic getter
         // getContentDisplay() is a lazy getter which modifies the content for e.g. console view (strip discord formatting)
         if (cmd.equals(Bot.CMD_PREFIX + "runsearch")) {
+            event.getChannel().sendMessage("Running inactive search now.").queue();
             Utils.runInactiveSearch();
         }
 
@@ -37,8 +38,6 @@ public class MessageListener extends ListenerAdapter {
             if (args.length >= 2) {
                 String key = args[1];
                 SqlDatabase core = SqlUtils.getDatabase("core");
-
-
                 try {
                     ResultSet rs = core.query("SELECT * FROM users WHERE discord_key='" + key + "';");
                     if (!rs.next()) {
@@ -52,8 +51,12 @@ public class MessageListener extends ListenerAdapter {
                         channel.deleteMessageById(event.getMessageId()).complete();
                     }
                 } catch (SQLException e) {
+                    channel.sendMessage("There was an error. Please check your key as it is case-sensitive. If you continue to run into an error please reach out to QuickScythe.").queue();
                     throw new RuntimeException(e);
                 }
+            } else {
+                channel.sendMessage("**Usage**: `!linkdiscord <key>`").queue();
+                channel.sendMessage("If you don't have a key, please join the server and type `/discord`.").queue();
             }
         }
     }
