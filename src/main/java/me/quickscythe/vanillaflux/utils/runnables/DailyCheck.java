@@ -18,11 +18,11 @@ public class DailyCheck extends TimerTask {
     @Override
     public void run() {
 
-        Utils.log("Ba-dump");
+        Utils.getLogger().attemptQueue();
         long now = new Date().getTime();
-        if (now - last_search >= Utils.convertTime(24, TimeUnit.HOURS)) {
+        if (now - last_search >= Utils.convertTime(12, TimeUnit.HOURS)) {
             last_search = now;
-            Utils.log("Searching");
+             Utils.getLogger().log("Checking for inactive users...", true);
             Utils.runInactiveSearch();
         }
     }

@@ -1,6 +1,9 @@
 package me.quickscythe.vanillaflux.utils;
 
 import me.quickscythe.vanillaflux.Bot;
+import me.quickscythe.vanillaflux.api.Api;
+import me.quickscythe.vanillaflux.api.FluxApi;
+import me.quickscythe.vanillaflux.utils.logs.BotLogger;
 import me.quickscythe.vanillaflux.utils.runnables.DailyCheck;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
@@ -9,9 +12,11 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.internal.utils.JDALogger;
-import org.slf4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -22,52 +27,55 @@ public class Utils {
 
     private static SqlDatabase core;
     private static JDA api;
-    public static final Logger LOG = JDALogger.getLog(JDA.class);
+    private static BotLogger LOG;
+    private static Api fluxApi;
 
+
+    public static void _before_init() {
+        LOG = new BotLogger("FluxApi");
+    }
 
     public static void init(JDA api) {
         Utils.api = api;
+        fluxApi = new FluxApi();
         SqlUtils.createDatabase("core", new SqlDatabase(SqlUtils.SQLDriver.MYSQL, "sql.vanillaflux.com", "vanillaflux", 3306, "sys", "9gGKGqthQJ&!#DGd"));
         core = SqlUtils.getDatabase("core");
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new DailyCheck(), convertTime(10,TimeUnit.SECONDS), convertTime(10, TimeUnit.SECONDS));
+        timer.scheduleAtFixedRate(new DailyCheck(), convertTime(10, TimeUnit.SECONDS), convertTime(10, TimeUnit.SECONDS));
+
 //        timer.schedule(new DailyCheck(timer), convertTime(10, TimeUnit.SECONDS));
+    }
+
+    public static String getContext(URL url) {
+        //TODO better logging
+        StringBuilder builder = new StringBuilder();
+        try {
+            URLConnection connection = url.openConnection();
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                System.out.println(inputLine);
+                builder.append(inputLine);
+            }
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return builder.toString();
+    }
+
+    public static Api getFluxApi() {
+        return fluxApi;
     }
 
     public static JDA getApi() {
         return api;
     }
 
-    public static Logger getLogger(){
+    public static BotLogger getLogger() {
         return LOG;
     }
 
-    public static void log(String message){
-        log(message, false);
-    }
-
-    public static void log(String message, boolean logToDiscord){
-        LOG.info(message);
-        if(logToDiscord) Utils.getLogsChannel().sendMessage("INFO: " + message).queue();
-    }
-
-    public static void error(String message){
-        error(message, false);
-    }
-
-    public static void error(String message, boolean logToDiscord){
-        LOG.error(message);
-        if(logToDiscord) Utils.getLogsChannel().sendMessage("ERROR: " + message).queue();
-    }
-
-    public static void warn(String message){
-        warn(message, false);
-    }
-
-    public static void warn(String message, boolean logToDiscord){
-        LOG.warn(message);
-        if(logToDiscord) Utils.getLogsChannel().sendMessage("WARN: " + message).queue();
-    }
 
     public static Guild getGuild() {
         return api.getGuildById(Bot.GUILD_ID);
@@ -95,7 +103,7 @@ public class Utils {
             long now = new Date().getTime();
             Role role = Utils.getInactiveRole();
             if (role == null) {
-                log("There was an error finding the `inactive` role.", true);
+                getLogger().log("There was an error finding the `inactive` role.", true);
                 return;
             }
             while (rs.next()) {
@@ -106,25 +114,26 @@ public class Utils {
                     userId = -1;
                 }
                 if (userId == -1) {
-                    log("Error finding user. (" + rs.getString("discord_id") + ")", true);
+//                    getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                     return;
                 }
                 Member member = getGuild().retrieveMemberById(userId).complete();
                 if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
                     if (member != null) {
                         getGuild().addRoleToMember(member, role).complete();
-                        log(member.getEffectiveName() + " has been made inactive.", true);
+//                        getLogger().log(member.getEffectiveName() + " has been made inactive.", true);
                     } else getCommandsChannel().sendMessage("Error..").queue();
                 } else {
 
                     if (member.getRoles().contains(role)) {
                         getGuild().removeRoleFromMember(member, role).complete();
-                        log(member.getEffectiveName() + " has been made active again", true);
+//                        getLogger().log(member.getEffectiveName() + " has been made active again", true);
                     }
                 }
             }
 
         } catch (SQLException e) {
+            getLogger().error("There was an error searching for inactive players. Please check the console.", e);
             throw new RuntimeException(e);
         }
     }

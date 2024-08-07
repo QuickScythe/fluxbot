@@ -1,20 +1,20 @@
 package me.quickscythe.vanillaflux.listeners;
 
+import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 public class MessageListener extends ListenerAdapter {
     @Override
@@ -32,6 +32,22 @@ public class MessageListener extends ListenerAdapter {
             event.getChannel().sendMessage("Running inactive search now.").queue();
             Utils.runInactiveSearch();
         }
+
+//        if (cmd.equals(Bot.CMD_PREFIX + "api")) {
+//            MessageChannel channel = event.getChannel();
+//            if (args.length >= 2) {
+//                String user = args[1];
+//                try {
+//                    JSONObject json = new JSONObject(Utils.getContext(new URI("https://api.vanillaflux.com/" + user).toURL()));
+//                    json.remove("statistics");
+//                    channel.sendMessage(json.toString()).queue();
+//                } catch (URISyntaxException | MalformedURLException e) {
+//                    Utils.getLogger().error("Some error", e);
+//                }
+//            } else {
+//                channel.sendMessage("There was an error processing that player. Please provide a username or UUID.").queue();
+//            }
+//        }
 
         if (cmd.equals(Bot.CMD_PREFIX + "linkdiscord")) {
             MessageChannel channel = event.getChannel();
