@@ -121,13 +121,13 @@ public class Utils {
                 if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
                     if (member != null) {
                         getGuild().addRoleToMember(member, role).complete();
-//                        getLogger().log(member.getEffectiveName() + " has been made inactive.", true);
+                        getLogger().log(member.getEffectiveName() + " has been made inactive.", true);
                     } else getCommandsChannel().sendMessage("Error..").queue();
                 } else {
 
                     if (member.getRoles().contains(role)) {
                         getGuild().removeRoleFromMember(member, role).complete();
-//                        getLogger().log(member.getEffectiveName() + " has been made active again", true);
+                        getLogger().log(member.getEffectiveName() + " has been made active again", true);
                     }
                 }
             }
