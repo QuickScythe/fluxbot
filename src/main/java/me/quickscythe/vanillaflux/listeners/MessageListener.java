@@ -20,7 +20,7 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
-        if (!event.getChannel().equals(Utils.getCommandsChannel())) return;
+        if (!event.getChannel().equals(Utils.getCommandsChannel()) && !event.getChannel().equals(Utils.getLogsChannel())) return;
         // We don't want to respond to other bot accounts, including ourself
         Message message = event.getMessage();
         String content = message.getContentRaw();
@@ -31,6 +31,12 @@ public class MessageListener extends ListenerAdapter {
         if (cmd.equals(Bot.CMD_PREFIX + "runsearch")) {
             event.getChannel().sendMessage("Running inactive search now.").queue();
             Utils.runInactiveSearch();
+        }
+
+        if (cmd.equals(Bot.CMD_PREFIX + "update")) {
+            Utils.getLogger().log("Updating the bot now.", true);
+            Utils.update();
+
         }
 
 //        if (cmd.equals(Bot.CMD_PREFIX + "api")) {

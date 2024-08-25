@@ -13,12 +13,14 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
@@ -135,6 +137,63 @@ public class Utils {
         } catch (SQLException e) {
             getLogger().error("There was an error searching for inactive players. Please check the console.", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void update() {
+        try {
+            saveStream(downloadFile("https://ci.vanillaflux.com/view/FluxVerse/job/biflux_bot/lastSuccessfulBuild/artifact/build/libs/fluxbot-1.0-all.jar", "admin", "&aaXffYj4#Pq@T3Q"), new FileOutputStream("fluxbot-1.0-all.jar"));
+            getLogger().log("Update complete.", true);
+            System.exit(0);
+        } catch (Exception ex) {
+            getLogger().error("There was an error updating the bot.", ex);
+        }
+    }
+
+    public static InputStream downloadFile(String url, String... auth) {
+
+
+        try {
+
+            URL myUrl = new URI(url).toURL();
+            HttpURLConnection conn = (HttpURLConnection) myUrl.openConnection();
+            conn.setDoOutput(true);
+            conn.setReadTimeout(30000);
+            conn.setConnectTimeout(30000);
+            conn.setUseCaches(false);
+            conn.setAllowUserInteraction(false);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
+            conn.setRequestMethod("GET");
+
+            if (auth != null && auth.length >= 2) {
+                String userCredentials = auth[0].trim() + ":" + auth[1].trim();
+                String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
+                conn.setRequestProperty("Authorization", basicAuth);
+            }
+//            InputStream in = ;
+//            FileOutputStream out = new FileOutputStream(filename);
+
+
+            return conn.getInputStream();
+
+        } catch (Exception ex) {
+            getLogger().error("There was an error downloading that file.", ex);
+        }
+
+        return InputStream.nullInputStream();
+    }
+
+    public static void saveStream(InputStream in, FileOutputStream out) {
+        try {
+            int c;
+            byte[] b = new byte[1024];
+            while ((c = in.read(b)) != -1) out.write(b, 0, c);
+
+            in.close();
+            out.close();
+        } catch (IOException ex) {
+            getLogger().error("There was an error saving a downloaded file.", ex);
         }
     }
 }
