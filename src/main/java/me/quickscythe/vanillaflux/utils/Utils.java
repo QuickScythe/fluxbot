@@ -144,7 +144,7 @@ public class Utils {
         try {
             saveStream(downloadFile("https://ci.vanillaflux.com/view/FluxVerse/job/biflux_bot/lastSuccessfulBuild/artifact/build/libs/fluxbot-1.0-all.jar", "admin", "&aaXffYj4#Pq@T3Q"), new FileOutputStream("fluxbot-1.0-all.jar"));
             getLogger().log("Update complete.", true);
-            System.exit(0);
+            System.exit(1);
         } catch (Exception ex) {
             getLogger().error("There was an error updating the bot.", ex);
         }
