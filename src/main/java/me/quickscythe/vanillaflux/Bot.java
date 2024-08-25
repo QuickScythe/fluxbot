@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class Bot {
 
 
-    public static final String CMD_PREFIX = "?";
+    public static final String CMD_PREFIX = "!";
     public static final long COMMAND_CHANNEL = 1268045246512758835L;
     public static final long LOG_CHANNEL = 1268006180626628690L;
     public static final long GUILD_ID = 1140468525190877206L;
