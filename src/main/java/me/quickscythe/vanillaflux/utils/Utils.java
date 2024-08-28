@@ -116,7 +116,7 @@ public class Utils {
                     userId = -1;
                 }
                 if (userId == -1) {
-//                    getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
+                    getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                     return;
                 }
                 Member member = getGuild().retrieveMemberById(userId).complete();

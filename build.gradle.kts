@@ -1,3 +1,12 @@
+val sparkVersion: String by project
+val sqlVersion: String by project
+val junitVersion: String by project
+val logbackVersion: String by project
+val jdaVersion: String by project
+val group: String by project
+val version: String by project
+val main: String by project
+
 plugins {
     id("java")
     application
@@ -5,12 +14,9 @@ plugins {
     id("maven-publish")
 }
 
-group = "me.quickscythe"
-version = "1.0-SNAPSHOT"
-application.mainClass = "me.quickscythe.vanillaflux.Bot" //
-version = "1.0"
+application.mainClass = main // Set the main class for the application
 
-val jdaVersion = "5.0.1" //
+
 
 
 repositories {
@@ -18,13 +24,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform("org.junit:junit-bom:$junitVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.dv8tion:JDA:$jdaVersion")
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-
-
-    implementation("mysql", "mysql-connector-java", "8.0.28");
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("com.sparkjava:spark-core:$sparkVersion")
+    implementation("mysql", "mysql-connector-java", sqlVersion);
 
 //    api group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
 

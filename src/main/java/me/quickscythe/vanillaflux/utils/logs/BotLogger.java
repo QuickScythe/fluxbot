@@ -1,5 +1,6 @@
 package me.quickscythe.vanillaflux.utils.logs;
 
+import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ public class BotLogger {
     Map<Long, QueuedLog> queue = new HashMap<>();
 
     public BotLogger(String name) {
-        this.LOG = LoggerFactory.getLogger(name);
+        this.LOG = LoggerFactory.getLogger(Bot.class);
     }
 
     public Logger getLog() {

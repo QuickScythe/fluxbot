@@ -9,4 +9,5 @@ public interface Api {
 
     public JSONObject getPlayerData(UUID uid) throws SQLException;
 
+    UUID searchUUID(String params) throws SQLException;
 }

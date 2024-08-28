@@ -1,6 +1,7 @@
 package me.quickscythe.vanillaflux.api;
 
 import json2.JSONObject;
+import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 
 import java.sql.Blob;
@@ -28,5 +29,16 @@ public class FluxApi implements Api {
         }
         return null;
 
+    }
+
+    @Override
+    public UUID searchUUID(String username) throws SQLException {
+        ResultSet rs = SqlUtils.getDatabase("core").query("SELECT * FROM users;");
+        while (rs.next()) {
+            if (rs.getString("username").equalsIgnoreCase(username)) {
+                return UUID.fromString(rs.getString("uuid"));
+            }
+        }
+        return null;
     }
 }
