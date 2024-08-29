@@ -7,12 +7,13 @@ import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class DailyCheck extends TimerTask {
+public class Heartbeat extends TimerTask {
 
-    private static long last_search = 0L;
+    private static long daily_check = 0L;
+    private static long config_check = 0L;
 
 
-    public DailyCheck() {
+    public Heartbeat() {
     }
 
     @Override
@@ -20,10 +21,15 @@ public class DailyCheck extends TimerTask {
 
         Utils.getLogger().attemptQueue();
         long now = new Date().getTime();
-        if (now - last_search >= Utils.convertTime(12, TimeUnit.HOURS)) {
-            last_search = now;
+        if (now - daily_check >= Utils.convertTime(12, TimeUnit.HOURS)) {
+            daily_check = now;
             Utils.getLogger().log("Checking for inactive users...", !Bot.isDebug());
             Utils.runInactiveSearch();
+        }
+        if (now - config_check >= Utils.convertTime(5, TimeUnit.MINUTES)) {
+            config_check = now;
+            Bot.saveConfig();
+//            Utils.getLogger().log("Config saved.", Bot.isDebug());
         }
     }
 }

@@ -1,5 +1,6 @@
 package me.quickscythe.vanillaflux.listeners;
 
+import json2.JSONArray;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
@@ -30,12 +31,12 @@ public class MessageListener extends ListenerAdapter {
         String[] args = content.split(" ");
         // getContentRaw() is an atomic getter
         // getContentDisplay() is a lazy getter which modifies the content for e.g. console view (strip discord formatting)
-        if (cmd.equals(Bot.CMD_PREFIX + "runsearch")) {
+        if (cmd.equals(Bot.CMD_PREFIX() + "runsearch")) {
             event.getChannel().sendMessage("Running inactive search now.").queue();
             Utils.runInactiveSearch();
         }
 
-        if (cmd.equals(Bot.CMD_PREFIX + "update")) {
+        if (cmd.equals(Bot.CMD_PREFIX() + "update")) {
             Utils.getLogger().log("Updating the bot now.", true);
             Utils.update();
 
@@ -68,7 +69,20 @@ public class MessageListener extends ListenerAdapter {
 //            }
 //        }
 
-        if (cmd.equals(Bot.CMD_PREFIX + "linkdiscord")) {
+        if(cmd.equals(Bot.CMD_PREFIX() + "allow")){
+            if(!Bot.getConfig().has("allow")){
+                Bot.getConfig().put("allow", new JSONArray());
+            }
+            if(args.length < 2){
+                event.getChannel().sendMessage("Usage: `" + Bot.CMD_PREFIX() + "allow <ip>`").queue();
+                return;
+            }
+
+            Bot.getConfig().getJSONArray("allow").put(args[1]);
+            Bot.saveConfig();
+        }
+
+        if (cmd.equals(Bot.CMD_PREFIX() + "linkdiscord")) {
             MessageChannel channel = event.getChannel();
             if (args.length >= 2) {
                 String key = args[1];

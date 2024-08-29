@@ -4,7 +4,7 @@ import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.api.Api;
 import me.quickscythe.vanillaflux.api.FluxApi;
 import me.quickscythe.vanillaflux.utils.logs.BotLogger;
-import me.quickscythe.vanillaflux.utils.runnables.DailyCheck;
+import me.quickscythe.vanillaflux.utils.runnables.Heartbeat;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 import net.dv8tion.jda.api.JDA;
@@ -43,7 +43,7 @@ public class Utils {
         SqlUtils.createDatabase("core", new SqlDatabase(SqlUtils.SQLDriver.MYSQL, "sql.vanillaflux.com", "vanillaflux", 3306, "sys", "9gGKGqthQJ&!#DGd"));
         core = SqlUtils.getDatabase("core");
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new DailyCheck(), convertTime(10, TimeUnit.SECONDS), convertTime(10, TimeUnit.SECONDS));
+        timer.scheduleAtFixedRate(new Heartbeat(), convertTime(10, TimeUnit.SECONDS), convertTime(10, TimeUnit.SECONDS));
 
 //        timer.schedule(new DailyCheck(timer), convertTime(10, TimeUnit.SECONDS));
     }

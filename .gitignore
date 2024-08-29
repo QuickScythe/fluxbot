@@ -6,6 +6,7 @@ build/
 
 ### Gradle ###
 fluxbot-1.0-all.jar
+config
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

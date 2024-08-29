@@ -99,7 +99,8 @@ public class WebApp {
 
         get(Bot.APP_ENTRY_POINT + "/token", (req, res) -> {
             res.type("application/json");
-            return Feedback.Success.json(TokenManager.requestNewToken(false));
+            String token = TokenManager.requestNewToken(req.ip());
+            return token == null ? Feedback.Errors.json("Error generating token. IP Not allowed?") : Feedback.Success.json(token);
         });
     }
 }
