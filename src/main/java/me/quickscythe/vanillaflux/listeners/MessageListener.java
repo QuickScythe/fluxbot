@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,6 +55,18 @@ public class MessageListener extends ListenerAdapter {
 //                channel.sendMessage("There was an error processing that player. Please provide a username or UUID.").queue();
 //            }
 //        }
+
+        if(cmd.equals(Bot.CMD_PREFIX + "test")){
+            Utils.getLogger().log("TEST 1",true);
+            URI uri = URI.create("https://api.vanillaflux.com/app/ThisIsATest");
+            try {
+                Utils.getLogger().log("TEST 2",true);
+                uri.toURL().openConnection();
+            } catch (IOException e) {
+                Utils.getLogger().log("TEST 3",true);
+                throw new RuntimeException(e);
+            }
+        }
 
         if (cmd.equals(Bot.CMD_PREFIX + "linkdiscord")) {
             MessageChannel channel = event.getChannel();

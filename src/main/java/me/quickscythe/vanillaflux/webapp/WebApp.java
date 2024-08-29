@@ -19,11 +19,15 @@ public class WebApp {
 
     public WebApp() {
         port(PORT);
-        get(Bot.API_ENTRY_POINT, (req, res) -> Errors.json("No UUID provided"));
+        get(Bot.API_ENTRY_POINT, (req, res) -> {
+            res.type("application/json");
+            return Errors.json("No UUID provided");
+        });
         get(Bot.API_ENTRY_POINT + "/:uuid", (req, res) -> {
             String param = req.params(":uuid");
             Utils.getLogger().log("Got a connection");
             Utils.getLogger().log("Param: " + param);
+            res.type("application/json");
             try {
                 try {
                     return Utils.getFluxApi().getPlayerData(UUID.fromString(param)).toString();
@@ -44,6 +48,11 @@ public class WebApp {
 
         get(Bot.APP_ENTRY_POINT, (request, response) -> {
             response.redirect("https://www.vanillaflux.com");
+            return "test";
+        });
+
+        get(Bot.APP_ENTRY_POINT + "/:path", (req, res) -> {
+            Utils.getLogger().log(req.params(":path"), true);
             return "test";
         });
     }
