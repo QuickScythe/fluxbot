@@ -5,8 +5,8 @@ build/
 !**/src/test/**/build/
 
 ### Gradle ###
-fluxbot-1.0-all.jar
-config
+**.jar
+
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -45,3 +45,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 /token
+/config

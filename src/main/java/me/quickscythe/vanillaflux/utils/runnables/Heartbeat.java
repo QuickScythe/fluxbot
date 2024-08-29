@@ -11,6 +11,7 @@ public class Heartbeat extends TimerTask {
 
     private static long daily_check = 0L;
     private static long config_check = 0L;
+    private static long token_check = 0L;
 
 
     public Heartbeat() {
@@ -29,7 +30,11 @@ public class Heartbeat extends TimerTask {
         if (now - config_check >= Utils.convertTime(5, TimeUnit.MINUTES)) {
             config_check = now;
             Bot.saveConfig();
-//            Utils.getLogger().log("Config saved.", Bot.isDebug());
+        }
+        if (now - token_check >= Utils.convertTime(1, TimeUnit.MINUTES)) {
+            token_check = now;
+            Utils.getLogger().log("Checking for expired tokens...", !Bot.isDebug());
+            Utils.runTokenCheck();
         }
     }
 }

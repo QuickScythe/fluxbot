@@ -7,6 +7,8 @@ import me.quickscythe.vanillaflux.utils.logs.BotLogger;
 import me.quickscythe.vanillaflux.utils.runnables.Heartbeat;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
+import me.quickscythe.vanillaflux.webapp.Token;
+import me.quickscythe.vanillaflux.webapp.TokenManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -20,9 +22,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Utils {
@@ -194,6 +194,19 @@ public class Utils {
             out.close();
         } catch (IOException ex) {
             getLogger().error("There was an error saving a downloaded file.", ex);
+        }
+    }
+
+    public static void runTokenCheck() {
+        List<String> remove_tokens = new ArrayList<>();
+        for (Token token : TokenManager.getTokens()) {
+            if (token.isExpired()) {
+                getLogger().log("Token " + token.getToken() + " has expired.");
+                remove_tokens.add(token.getToken());
+            }
+        }
+        for(String token : remove_tokens){
+            TokenManager.removeToken(token);
         }
     }
 }

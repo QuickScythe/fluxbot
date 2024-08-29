@@ -1,5 +1,7 @@
 package me.quickscythe.vanillaflux.webapp;
 
+import json2.JSONArray;
+import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Feedback;
 import me.quickscythe.vanillaflux.utils.Utils;
@@ -60,7 +62,7 @@ public class WebApp {
             String a = req.queryParams("a");
             String b = req.queryParams("b");
             String c = req.queryParams("c");
-            if (TokenManager.getToken(token) == null) return Feedback.Errors.json("Invalid token");
+            if (TokenManager.validToken(TokenManager.getToken(token), req)) return Feedback.Errors.json("Invalid token");
             if (action.equalsIgnoreCase("join") || action.equalsIgnoreCase("leave")) {
                 //a = discord id, b = username, c = uuid
                 if (a == null && b == null && c == null)
@@ -101,6 +103,16 @@ public class WebApp {
             res.type("application/json");
             String token = TokenManager.requestNewToken(req.ip());
             return token == null ? Feedback.Errors.json("Error generating token. IP Not allowed?") : Feedback.Success.json(token);
+        });
+
+        get(Bot.APP_ENTRY_POINT + "/tokens", (req, res) -> {
+            res.type("application/json");
+            JSONObject feedback = new JSONObject();
+            feedback.put("tokens", new JSONArray());
+            for(String token : TokenManager.getTokens(req.ip())){
+                feedback.getJSONArray("tokens").put(token);
+            }
+            return feedback;
         });
     }
 }
