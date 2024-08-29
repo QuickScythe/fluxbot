@@ -3,6 +3,7 @@ package me.quickscythe.vanillaflux.webapp;
 import json2.JSONArray;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
+import me.quickscythe.vanillaflux.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ public class TokenManager {
         if (!Bot.getConfig().has("allow")) {
             Bot.getConfig().put("allow", new JSONArray());
         }
+        Utils.getLogger().log("Requesting token for " + ip);
         boolean allowed = false;
         JSONObject data = Bot.getConfig();
         for (int i = 0; i != data.getJSONArray("allow").length(); i++) {
