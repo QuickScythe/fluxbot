@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -56,17 +57,20 @@ public class MessageListener extends ListenerAdapter {
 //            }
 //        }
 
-        if(cmd.equals(Bot.CMD_PREFIX + "test")){
-            Utils.getLogger().log("TEST 1",true);
-            URI uri = URI.create("https://api.vanillaflux.com/app/ThisIsATest");
-            try {
-                Utils.getLogger().log("TEST 2",true);
-                uri.toURL().openConnection();
-            } catch (IOException e) {
-                Utils.getLogger().log("TEST 3",true);
-                throw new RuntimeException(e);
-            }
-        }
+//        if(cmd.equals(Bot.CMD_PREFIX + "test")){
+//            Utils.getLogger().log("TEST 1",true);
+//            URI uri = URI.create("http://localhost/app/ThisIsATest");
+//            try {
+//                Utils.getLogger().log("TEST 2",true);
+//                URLConnection conn = uri.toURL().openConnection();
+//                conn.connect();
+//                conn.getContent();
+////                Utils.getLogger().log(conn.getContent().toString(), false);
+//                Utils.getLogger().log("TEST 3",true);
+//            } catch (IOException e) {
+//                Utils.getLogger().error("ERROR",e);
+//            }
+//        }
 
         if (cmd.equals(Bot.CMD_PREFIX + "linkdiscord")) {
             MessageChannel channel = event.getChannel();
