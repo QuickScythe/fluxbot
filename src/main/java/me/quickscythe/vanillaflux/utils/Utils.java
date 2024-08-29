@@ -80,15 +80,15 @@ public class Utils {
 
 
     public static Guild getGuild() {
-        return api.getGuildById(Bot.GUILD_ID);
+        return api.getGuildById(Bot.GUILD_ID());
     }
 
     public static TextChannel getLogsChannel() {
-        return getGuild().getChannelById(TextChannel.class, Bot.LOG_CHANNEL);
+        return getGuild().getChannelById(TextChannel.class, Bot.LOG_CHANNEL());
     }
 
     public static TextChannel getCommandsChannel() {
-        return getGuild().getChannelById(TextChannel.class, Bot.COMMAND_CHANNEL);
+        return getGuild().getChannelById(TextChannel.class, Bot.COMMAND_CHANNEL());
     }
 
     public static long convertTime(int duration, TimeUnit timeUnit) {
@@ -96,7 +96,7 @@ public class Utils {
     }
 
     public static Role getInactiveRole() {
-        return getGuild().getRoleById(Bot.INACTIVE_ROLE);
+        return getGuild().getRoleById(Bot.INACTIVE_ROLE());
     }
 
     public static void runInactiveSearch() {

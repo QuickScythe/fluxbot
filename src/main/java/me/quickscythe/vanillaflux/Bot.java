@@ -16,68 +16,69 @@ import java.util.concurrent.TimeUnit;
 public class Bot {
 
 
-    public static final long COMMAND_CHANNEL = 1268045246512758835L;
-    public static final long LOG_CHANNEL = 1268006180626628690L;
-    public static final long GUILD_ID = 1140468525190877206L;
-    public static final long INACTIVE_ROLE = 1226923455648104559L;
-    public static final long ONLINE_ROLE = 1278524752348315689L;
-    public static final long INACTIVE_DAYS_TIMER = 90;
-    public static final String API_ENTRY_POINT = "/api";
-    public static final String APP_ENTRY_POINT = "/app";
+    private static final long COMMAND_CHANNEL = 1268045246512758835L;
+    private static final long LOG_CHANNEL = 1268006180626628690L;
+    private static final long GUILD_ID = 1140468525190877206L;
+    private static final long INACTIVE_ROLE = 1226923455648104559L;
+    private static final long ONLINE_ROLE = 1278524752348315689L;
+    private static final String API_ENTRY_POINT = "/api";
+    private static final String APP_ENTRY_POINT = "/app";
+    private static final int INACTIVE_DAYS_TIMER = 90;
     private static String CMD_PREFIX = "!";
     private static String BOT_TOKEN;
     private static String APP_TOKEN;
+    private static int WEB_PORT = 8585;
+    private static int TOKEN_VALID_TIME = 1;
     private static boolean DEBUG = false;
     private static JSONObject CONFIG;
 
     public static void main(String[] args) {
         Utils._before_init();
-        BOT_TOKEN = loadToken();
 
         CONFIG = loadConfig();
         if (!CONFIG.has("command_prefix"))
             CONFIG.put("command_prefix", CMD_PREFIX);
-        else CMD_PREFIX = CONFIG.getString("command_prefix");
+        if (!CONFIG.has("command_channel"))
+            CONFIG.put("command_channel", COMMAND_CHANNEL);
+        if (!CONFIG.has("log_channel"))
+            CONFIG.put("log_channel", LOG_CHANNEL);
+        if (!CONFIG.has("inactive_role"))
+            CONFIG.put("inactive_role", INACTIVE_ROLE);
+        if (!CONFIG.has("online_role"))
+            CONFIG.put("online_role", ONLINE_ROLE);
+        if (!CONFIG.has("api_entry_point"))
+            CONFIG.put("api_entry_point", API_ENTRY_POINT);
+        if (!CONFIG.has("app_entry_point"))
+            CONFIG.put("app_entry_point", APP_ENTRY_POINT);
+        if (!CONFIG.has("inactive_days_timer"))
+            CONFIG.put("inactive_days_timer", INACTIVE_DAYS_TIMER);
+        if (!CONFIG.has("web_port"))
+            CONFIG.put("web_port", WEB_PORT);
+        if (!CONFIG.has("token_valid_time"))
+            CONFIG.put("token_valid_time", TOKEN_VALID_TIME);
+        if (!CONFIG.has("bot_token")) {
+            Utils.getLogger().error("Bot token not found in config file. Please enter your bot token in the config file.", "=");
+            throw new RuntimeException("Bot token not found in config file.");
+        }
+        BOT_TOKEN = CONFIG.getString("bot_token");
+        if(BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
         Utils.init(api);
         APP_TOKEN = TokenManager.requestNewToken("0:0:0:0:0:0:0:1");
         api.addEventListener(new MessageListener());
+        saveConfig();
         new WebApp();
 
-    }
-
-    private static String loadToken() {
-        StringBuilder stringBuilder = new StringBuilder();
-        try {
-            File token = new File("token");
-            if (!token.exists()) if (token.createNewFile()) {
-                Utils.getLogger().error("Token file generated. Please enter your token before launch.", "=");
-            }
-            BufferedReader reader = new BufferedReader(new FileReader("token"));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            reader.close();
-
-
-        } catch (IOException ex) {
-            Utils.getLogger().error("Token File couldn't be generated or accessed. Please check console for more details.", ex);
-        }
-        String token = stringBuilder.toString();
-        if (token.startsWith("ODg1MzM")) DEBUG = true;
-        return token;
     }
 
     private static JSONObject loadConfig() {
         StringBuilder stringBuilder = new StringBuilder();
         try {
-            File config = new File("config");
+            File config = new File("config.json");
             if (!config.exists()) if (config.createNewFile()) {
                 Utils.getLogger().error("Config file generated.", "=");
             }
-            BufferedReader reader = new BufferedReader(new FileReader("config"));
+            BufferedReader reader = new BufferedReader(new FileReader("config.json"));
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -87,7 +88,7 @@ public class Bot {
 
 
         } catch (IOException ex) {
-            Utils.getLogger().error("Token File couldn't be generated or accessed. Please check console for more details.", ex);
+            Utils.getLogger().error("Config File couldn't be generated or accessed. Please check console for more details.", ex);
         }
         String config = stringBuilder.toString();
         return config.isEmpty() ? new JSONObject() : new JSONObject(config);
@@ -99,7 +100,7 @@ public class Bot {
 
     public static void saveConfig() {
         try {
-            FileWriter f2 = new FileWriter(new File("config"), false);
+            FileWriter f2 = new FileWriter("config.json", false);
             f2.write(CONFIG.toString(2));
             f2.close();
         } catch (IOException e) {
@@ -113,18 +114,58 @@ public class Bot {
     }
 
     public static long getInactiveEpochTime() {
-        return TimeUnit.MILLISECONDS.convert(INACTIVE_DAYS_TIMER, TimeUnit.DAYS);
+        return TimeUnit.MILLISECONDS.convert(INACTIVE_DAYS_TIMER(), TimeUnit.DAYS);
     }
 
-    public static String appToken() {
+    public static String APP_TOKEN() {
         return APP_TOKEN;
     }
 
-    public static String botToken() {
+    public static String BOT_TOKEN() {
         return BOT_TOKEN;
     }
 
     public static String CMD_PREFIX() {
-        return CMD_PREFIX;
+        return CONFIG.getString("command_prefix");
+    }
+
+    public static long COMMAND_CHANNEL() {
+        return CONFIG.getLong("command_channel");
+    }
+
+    public static long LOG_CHANNEL() {
+        return CONFIG.getLong("log_channel");
+    }
+
+    public static long GUILD_ID() {
+        return GUILD_ID;
+    }
+
+    public static long INACTIVE_ROLE() {
+        return CONFIG.getLong("inactive_role");
+    }
+
+    public static long ONLINE_ROLE() {
+        return CONFIG.getLong("online_role");
+    }
+
+    public static long INACTIVE_DAYS_TIMER() {
+        return CONFIG.getLong("inactive_days_timer");
+    }
+
+    public static String API_ENTRY_POINT() {
+        return CONFIG.getString("api_entry_point");
+    }
+
+    public static String APP_ENTRY_POINT() {
+        return CONFIG.getString("app_entry_point");
+    }
+
+    public static int WEB_PORT() {
+        return CONFIG.getInt("web_port");
+    }
+
+    public static int TOKEN_VALID_TIME() {
+        return CONFIG.getInt("token_valid_time");
     }
 }

@@ -31,7 +31,7 @@ public class Heartbeat extends TimerTask {
             config_check = now;
             Bot.saveConfig();
         }
-        if (now - token_check >= Utils.convertTime(1, TimeUnit.MINUTES)) {
+        if (now - token_check >= Utils.convertTime(Bot.TOKEN_VALID_TIME(), TimeUnit.HOURS)) {
             token_check = now;
             Utils.getLogger().log("Checking for expired tokens...", !Bot.isDebug());
             Utils.runTokenCheck();

@@ -18,16 +18,13 @@ import static spark.Spark.port;
 
 public class WebApp {
 
-    private final int PORT = 8585;
-    private final Logger logger = new BotLogger("WebApp").getLog();
-
     public WebApp() {
-        port(PORT);
-        get(Bot.API_ENTRY_POINT, (req, res) -> {
+        port(Bot.WEB_PORT());
+        get(Bot.API_ENTRY_POINT(), (req, res) -> {
             res.type("application/json");
             return Feedback.Errors.json("No UUID provided");
         });
-        get(Bot.API_ENTRY_POINT + "/:uuid", (req, res) -> {
+        get(Bot.API_ENTRY_POINT() + "/:uuid", (req, res) -> {
             String param = req.params(":uuid");
             Utils.getLogger().log("Got a connection");
             Utils.getLogger().log("Param: " + param);
@@ -50,12 +47,12 @@ public class WebApp {
         });
 
 
-        get(Bot.APP_ENTRY_POINT, (req, res) -> {
+        get(Bot.APP_ENTRY_POINT(), (req, res) -> {
             res.type("application/json");
             return Feedback.Errors.json("No path provided");
         });
 
-        get(Bot.APP_ENTRY_POINT + "/v1/:token/:action", (req, res) -> {
+        get(Bot.APP_ENTRY_POINT() + "/v1/:token/:action", (req, res) -> {
             res.type("application/json");
             String token = req.params(":token");
             String action = req.params(":action");
@@ -69,7 +66,7 @@ public class WebApp {
                     return Feedback.Errors.json("Must include at least one parameter");
                 Member mem;
                 //TODO Change to ONLINE_ROLE
-                Role role = Utils.getGuild().getRoleById(Bot.ONLINE_ROLE);
+                Role role = Utils.getGuild().getRoleById(Bot.ONLINE_ROLE());
                 if (role == null) return Feedback.Errors.json("Role not found");
                 if (a != null) {
                     mem = Utils.getGuild().getMemberById(Long.parseLong(a));
@@ -99,13 +96,13 @@ public class WebApp {
             return Feedback.Success.json("Action " + action + " completed. Extra info: " + c);
         });
 
-        get(Bot.APP_ENTRY_POINT + "/token", (req, res) -> {
+        get(Bot.APP_ENTRY_POINT() + "/token", (req, res) -> {
             res.type("application/json");
             String token = TokenManager.requestNewToken(req.ip());
             return token == null ? Feedback.Errors.json("Error generating token. IP Not allowed?") : Feedback.Success.json(token);
         });
 
-        get(Bot.APP_ENTRY_POINT + "/tokens", (req, res) -> {
+        get(Bot.APP_ENTRY_POINT() + "/tokens", (req, res) -> {
             res.type("application/json");
             JSONObject feedback = new JSONObject();
             feedback.put("tokens", new JSONArray());
@@ -114,5 +111,7 @@ public class WebApp {
             }
             return feedback;
         });
+
+        Utils.getLogger().log("WebApp started on port " + Bot.WEB_PORT(), !Bot.isDebug());
     }
 }
