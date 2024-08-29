@@ -10,4 +10,6 @@ public interface Api {
     public JSONObject getPlayerData(UUID uid) throws SQLException;
 
     UUID searchUUID(String params) throws SQLException;
+
+    public long getDiscordId(UUID uid) throws SQLException;
 }

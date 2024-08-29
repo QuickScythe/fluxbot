@@ -1,7 +1,6 @@
 package me.quickscythe.vanillaflux.api;
 
 import json2.JSONObject;
-import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 
 import java.sql.Blob;
@@ -22,7 +21,7 @@ public class FluxApi implements Api {
             JSONObject json = new JSONObject();
             json.put("server_info", play_stats);
             json.put("last_seen", Long.parseLong(rs.getString("last_seen")));
-            json.put("discord_linked", !rs.getString("discord_key").equals("null"));
+            json.put("discord_linked", !rs.getString("discord_id").equals("null"));
             json.put("uuid", UUID.fromString(rs.getString("uuid")));
             json.put("username", rs.getString("username"));
             return json;
@@ -40,5 +39,13 @@ public class FluxApi implements Api {
             }
         }
         return null;
+    }
+
+    public long getDiscordId(UUID uid) throws SQLException {
+        ResultSet rs = SqlUtils.getDatabase("core").query("SELECT * FROM users WHERE uuid='" + uid.toString() + "';");
+
+        if (rs.next()) return Long.parseLong(rs.getString("discord_id"));
+
+        return 0;
     }
 }

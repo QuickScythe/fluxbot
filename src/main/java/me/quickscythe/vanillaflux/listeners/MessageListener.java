@@ -58,15 +58,11 @@ public class MessageListener extends ListenerAdapter {
 //        }
 
 //        if(cmd.equals(Bot.CMD_PREFIX + "test")){
-//            Utils.getLogger().log("TEST 1",true);
-//            URI uri = URI.create("http://localhost/app/ThisIsATest");
+//            URI uri = URI.create("http://localhost:8585/app/v1/" + Bot.appToken() + "/join?c=QuickSctythe");
 //            try {
-//                Utils.getLogger().log("TEST 2",true);
 //                URLConnection conn = uri.toURL().openConnection();
 //                conn.connect();
 //                conn.getContent();
-////                Utils.getLogger().log(conn.getContent().toString(), false);
-//                Utils.getLogger().log("TEST 3",true);
 //            } catch (IOException e) {
 //                Utils.getLogger().error("ERROR",e);
 //            }

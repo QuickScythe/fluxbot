@@ -2,6 +2,7 @@ package me.quickscythe.vanillaflux;
 
 import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.webapp.TokenManager;
 import me.quickscythe.vanillaflux.webapp.WebApp;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -22,15 +23,18 @@ public class Bot {
     public static final long LOG_CHANNEL = 1268006180626628690L;
     public static final long GUILD_ID = 1140468525190877206L;
     public static final long INACTIVE_ROLE = 1226923455648104559L;
+    public static final long ONLINE_ROLE = 1278524752348315689L;
     public static final long INACTIVE_DAYS_TIMER = 90;
     public static final String API_ENTRY_POINT = "/api";
     public static final String APP_ENTRY_POINT = "/app";
     private static String BOT_TOKEN;
+    private static String APP_TOKEN;
     private static boolean DEBUG = false;
 
     public static void main(String[] args) {
         Utils._before_init();
         BOT_TOKEN = loadToken();
+        APP_TOKEN = TokenManager.requestNewToken(true);
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
         Utils.init(api);
         api.addEventListener(new MessageListener());
@@ -68,5 +72,13 @@ public class Bot {
 
     public static long getInactiveEpochTime() {
         return TimeUnit.MILLISECONDS.convert(INACTIVE_DAYS_TIMER, TimeUnit.DAYS);
+    }
+
+    public static String appToken() {
+        return APP_TOKEN;
+    }
+
+    public static String botToken() {
+        return BOT_TOKEN;
     }
 }
