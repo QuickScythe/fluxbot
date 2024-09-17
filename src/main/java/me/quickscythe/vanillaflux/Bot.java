@@ -81,6 +81,12 @@ public class Bot {
                         false),
                 new OptionData(
                         OptionType.STRING,
+                        "duration",
+                        "How long should the poll last? (Example: 3d12h = 3 days and 12 hours)",
+                        true,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
                         "answer1",
                         "First answer to the question",
                         true,
@@ -114,7 +120,32 @@ public class Bot {
                         "answer6",
                         "Sixth answer to the question",
                         false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer7",
+                        "Seventh answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer8",
+                        "Eighth answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer9",
+                        "Ninth answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer10",
+                        "Tenth answer to the question",
+                        false,
                         false)
+
         ));
 
     }

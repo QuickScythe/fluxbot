@@ -24,6 +24,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
 
@@ -86,6 +88,39 @@ public class Utils {
 
     public static BotLogger getLogger() {
         return LOG;
+    }
+
+    public static long parseDuration(String duration) {
+        long totalMilliseconds = 0;
+
+        // Regular expression to match weeks, days, hours, minutes, and seconds
+        Pattern pattern = Pattern.compile("(\\d+)([wdhms])");
+        Matcher matcher = pattern.matcher(duration);
+
+        while (matcher.find()) {
+            int value = Integer.parseInt(matcher.group(1));
+            String unit = matcher.group(2);
+
+            switch (unit) {
+                case "w":
+                    totalMilliseconds += value * 7 * 24 * 60 * 60 * 1000L; // Convert weeks to milliseconds
+                    break;
+                case "d":
+                    totalMilliseconds += value * 24 * 60 * 60 * 1000L; // Convert days to milliseconds
+                    break;
+                case "h":
+                    totalMilliseconds += value * 60 * 60 * 1000L; // Convert hours to milliseconds
+                    break;
+                case "m":
+                    totalMilliseconds += value * 60 * 1000L; // Convert minutes to milliseconds
+                    break;
+                case "s":
+                    totalMilliseconds += value * 1000L; // Convert seconds to milliseconds
+                    break;
+            }
+        }
+
+        return totalMilliseconds;
     }
 
 

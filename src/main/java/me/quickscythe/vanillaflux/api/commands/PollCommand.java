@@ -1,5 +1,6 @@
 package me.quickscythe.vanillaflux.api.commands;
 
+import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.Poll;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -19,6 +20,7 @@ public class PollCommand extends CustomCommand {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(getLabel())) {
             String question = event.getOption("question").getAsString();
+            long dur = Utils.parseDuration(event.getOption("duration").getAsString());
             List<String> answers = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
                 if (event.getOption("answer" + i) != null) {
@@ -26,10 +28,11 @@ public class PollCommand extends CustomCommand {
                 }
             }
 
-            Poll poll = new Poll(event.getChannel().asTextChannel(), question, answers.toArray(new String[answers.size()]));
-            poll.open();
-            event.getOption("question").getAsString();
-            event.reply("Hello").complete();
+            Poll poll = new Poll(event.getChannel().asTextChannel(), question, dur, answers.toArray(new String[0]));
+            event.deferReply().queue();
+            poll.open(event.getHook());
+//            event.getOption("question").getAsString();
+//            event.reply("Hello").complete();
         }
     }
 
