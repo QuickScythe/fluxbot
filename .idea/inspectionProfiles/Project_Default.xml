@@ -4,5 +4,26 @@
     <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,me.quickscythe.vanillaflux.utils.sql.SqlDatabase,query" />
     </inspection_tool>
+    <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="isIgnoringEnabled" value="true" />
+      <option name="ignoredModules">
+        <list>
+          <option value="fluxbot" />
+          <option value="fluxbot" />
+        </list>
+      </option>
+      <option name="ignoredPackages">
+        <list>
+          <option value="org.eclipse.jetty:jetty-client:9.4.31.v20200723" />
+          <option value="org.eclipse.jetty:jetty-http:9.4.31.v20200723" />
+        </list>
+      </option>
+      <option name="ignoredReasons">
+        <list>
+          <option value="Not exploitable" />
+          <option value="Fixed in branch" />
+        </list>
+      </option>
+    </inspection_tool>
   </profile>
 </component>

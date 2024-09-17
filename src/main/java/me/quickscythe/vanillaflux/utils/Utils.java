@@ -31,6 +31,7 @@ public class Utils {
     private static JDA api;
     private static BotLogger LOG;
     private static Api fluxApi;
+    private static final List<UID> uids = new ArrayList<>();
 
 
     public static void _before_init() {
@@ -64,6 +65,15 @@ public class Utils {
             e.printStackTrace();
         }
         return builder.toString();
+    }
+
+    public static UID newUID() {
+        UID uid = new UID();
+        while (uids.contains(uid)) {
+            uid = new UID();
+        }
+        uids.add(uid);
+        return uid;
     }
 
     public static Api getFluxApi() {

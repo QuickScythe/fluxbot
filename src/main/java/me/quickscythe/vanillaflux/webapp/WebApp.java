@@ -5,10 +5,8 @@ import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Feedback;
 import me.quickscythe.vanillaflux.utils.Utils;
-import me.quickscythe.vanillaflux.utils.logs.BotLogger;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import org.slf4j.Logger;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -59,7 +57,13 @@ public class WebApp {
             String a = req.queryParams("a");
             String b = req.queryParams("b");
             String c = req.queryParams("c");
-            if (TokenManager.validToken(TokenManager.getToken(token), req)) return Feedback.Errors.json("Invalid token");
+            if (TokenManager.validToken(TokenManager.getToken(token), req))
+                return Feedback.Errors.json("Invalid token");
+            if (action.equalsIgnoreCase("check_token")) {
+                if (TokenManager.validToken(TokenManager.getToken(token), req))
+                    return Feedback.Success.json("Valid Token");
+                return Feedback.Errors.json("Invalid token");
+            }
             if (action.equalsIgnoreCase("join") || action.equalsIgnoreCase("leave")) {
                 //a = discord id, b = username, c = uuid
                 if (a == null && b == null && c == null)
@@ -106,7 +110,7 @@ public class WebApp {
             res.type("application/json");
             JSONObject feedback = new JSONObject();
             feedback.put("tokens", new JSONArray());
-            for(String token : TokenManager.getTokens(req.ip())){
+            for (String token : TokenManager.getTokens(req.ip())) {
                 feedback.getJSONArray("tokens").put(token);
             }
             return feedback;

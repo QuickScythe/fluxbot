@@ -1,12 +1,15 @@
 package me.quickscythe.vanillaflux;
 
 import json2.JSONObject;
+import me.quickscythe.vanillaflux.api.commands.PollCommand;
 import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
 import me.quickscythe.vanillaflux.webapp.WebApp;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
@@ -58,16 +61,61 @@ public class Bot {
             CONFIG.put("token_valid_time", TOKEN_VALID_TIME);
         if (!CONFIG.has("bot_token")) {
             Utils.getLogger().error("Bot token not found in config file. Please enter your bot token in the config file.", "=");
+            saveConfig();
             throw new RuntimeException("Bot token not found in config file.");
         }
         BOT_TOKEN = CONFIG.getString("bot_token");
-        if(BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
+        if (BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
         Utils.init(api);
         APP_TOKEN = TokenManager.requestNewToken("0:0:0:0:0:0:0:1");
         api.addEventListener(new MessageListener());
         saveConfig();
         new WebApp();
+        api.addEventListener(new PollCommand(Utils.getGuild(), "epoll", "Create a poll",
+                new OptionData(
+                        OptionType.STRING,
+                        "question",
+                        "The question of the poll",
+                        true,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer1",
+                        "First answer to the question",
+                        true,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer2",
+                        "Second answer to the question",
+                        true,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer3",
+                        "Third answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer4",
+                        "Fourth answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer5",
+                        "Fifth answer to the question",
+                        false,
+                        false),
+                new OptionData(
+                        OptionType.STRING,
+                        "answer6",
+                        "Sixth answer to the question",
+                        false,
+                        false)
+        ));
 
     }
 
@@ -168,4 +216,5 @@ public class Bot {
     public static int TOKEN_VALID_TIME() {
         return CONFIG.getInt("token_valid_time");
     }
+
 }
