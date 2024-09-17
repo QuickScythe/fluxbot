@@ -2,6 +2,8 @@ package me.quickscythe.vanillaflux.utils.runnables;
 
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.utils.polls.Poll;
+import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 
 import java.util.Date;
 import java.util.TimerTask;
@@ -22,6 +24,13 @@ public class Heartbeat extends TimerTask {
 
         Utils.getLogger().attemptQueue();
         long now = new Date().getTime();
+        for(Poll poll : PollUtils.getPolls()){
+            if(poll.isOpen()){
+                if(now - poll.getStarted() >= poll.getDuration()){
+                    poll.close();
+                }
+            }
+        }
         if (now - daily_check >= Utils.convertTime(12, TimeUnit.HOURS)) {
             daily_check = now;
             Utils.getLogger().log("Checking for inactive users...", !Bot.isDebug());

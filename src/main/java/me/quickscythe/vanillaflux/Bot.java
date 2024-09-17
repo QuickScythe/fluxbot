@@ -1,7 +1,8 @@
 package me.quickscythe.vanillaflux;
 
 import json2.JSONObject;
-import me.quickscythe.vanillaflux.api.commands.PollCommand;
+import me.quickscythe.vanillaflux.listeners.ButtonListener;
+import me.quickscythe.vanillaflux.listeners.commands.PollCommand;
 import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
@@ -147,6 +148,7 @@ public class Bot {
                         false)
 
         ));
+        api.addEventListener(new ButtonListener());
 
     }
 

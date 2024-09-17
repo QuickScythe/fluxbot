@@ -1,4 +1,4 @@
-package me.quickscythe.vanillaflux.api.commands;
+package me.quickscythe.vanillaflux.listeners.commands;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
