@@ -38,7 +38,7 @@ public class Bot {
     private static boolean DEBUG = false;
     private static JSONObject CONFIG;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Utils._before_init();
 
         CONFIG = loadConfig();
@@ -72,6 +72,7 @@ public class Bot {
         BOT_TOKEN = CONFIG.getString("bot_token");
         if (BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
+        api.awaitReady();
         Utils.init(api);
         APP_TOKEN = TokenManager.requestNewToken("0:0:0:0:0:0:0:1");
         api.addEventListener(new MessageListener());
