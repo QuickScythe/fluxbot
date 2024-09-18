@@ -30,7 +30,6 @@ public class PollCloseCommand extends CustomCommand {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(getLabel())) {
-            if(event.getUser().)
             long id = event.getOption("id").getAsLong();
             Poll poll = PollUtils.getPoll(id);
             if (poll == null) {
