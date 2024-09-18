@@ -58,6 +58,8 @@ public class Bot {
             CONFIG.put("app_entry_point", APP_ENTRY_POINT);
         if (!CONFIG.has("inactive_days_timer"))
             CONFIG.put("inactive_days_timer", INACTIVE_DAYS_TIMER);
+        if (!CONFIG.has("guild_id"))
+            CONFIG.put("guild_id", GUILD_ID);
         if (!CONFIG.has("web_port"))
             CONFIG.put("web_port", WEB_PORT);
         if (!CONFIG.has("token_valid_time"))
