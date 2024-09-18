@@ -44,7 +44,7 @@ public class MessageListener extends ListenerAdapter {
                 return;
             }
             String uid = args[1];
-            PollUtils.getPoll(UID.from(uid)).close();
+            PollUtils.getPoll(Long.parseLong(uid)).close();
         }
 
         if (cmd.equals(Bot.CMD_PREFIX() + "update")) {

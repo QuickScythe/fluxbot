@@ -12,28 +12,29 @@ import static me.quickscythe.vanillaflux.utils.Utils.newUID;
 
 public class PollOption {
     private String answer;
-    private UID id;
+    private char id;
     private Button button;
     private List<Long> votes = new ArrayList<>();
 
     public PollOption(JSONObject data){
         answer = data.getString("answer");
+        id = ((char) data.getInt("id"));
         for(int i=0; i<data.getJSONArray("votes").length(); i++){
             votes.add(data.getJSONArray("votes").getLong(i));
         }
-        id = newUID();
+
     }
 
-    public PollOption(String answer) {
+    public PollOption(char id, String answer) {
         this.answer = answer;
-        id = newUID();
+        this.id = id;
     }
 
     public String getAnswer() {
         return answer;
     }
 
-    public UID getUid() {
+    public char getId() {
         return id;
     }
 
@@ -47,7 +48,7 @@ public class PollOption {
 
     public String getProgressBar(double percent) {
         if(percent == 0) percent = 0.01;
-        int totalBars = 20; // Total number of bars in the progress bar
+        int totalBars = 40; // Total number of bars in the progress bar
         StringBuilder progressBar = new StringBuilder();
         progressBar.append("`");
         for(int i=0; i<totalBars; i++){
@@ -71,7 +72,6 @@ public class PollOption {
     }
 
     public void vote(User user) {
-        System.out.println("Voting for " + user.getName() + " on " + answer);
         if(votes.contains(user.getIdLong())) return;
         votes.add(user.getIdLong());
     }

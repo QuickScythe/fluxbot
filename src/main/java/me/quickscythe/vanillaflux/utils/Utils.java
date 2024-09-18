@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -59,7 +60,6 @@ public class Utils {
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
-                System.out.println(inputLine);
                 builder.append(inputLine);
             }
             in.close();
@@ -164,6 +164,7 @@ public class Utils {
                     getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                     return;
                 }
+                try{
                 Member member = getGuild().retrieveMemberById(userId).complete();
                 if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
                     if (member != null) {
@@ -176,6 +177,9 @@ public class Utils {
                         getGuild().removeRoleFromMember(member, role).complete();
                         getLogger().log(member.getEffectiveName() + " has been made active again", true);
                     }
+                }
+            } catch (ErrorResponseException ex){
+                    getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                 }
             }
 

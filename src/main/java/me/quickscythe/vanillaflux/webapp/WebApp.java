@@ -5,8 +5,11 @@ import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Feedback;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.utils.data.DataManager;
+import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import org.eclipse.jetty.server.session.SessionDataMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +34,8 @@ public class WebApp {
             res.type("application/json");
             if(param.endsWith(".png")){
                 res.type("image/png");
-                try (InputStream imageStream = new FileInputStream("polls/" + param)) {
+                String id = param.split("\\.")[0];
+                try (InputStream imageStream = new FileInputStream("polls/" + id + "/results.png")) {
                     byte[] imageBytes = imageStream.readAllBytes();
                     return imageBytes;
                 } catch (IOException e) {
@@ -39,7 +43,13 @@ public class WebApp {
                     return "Image not found";
                 }
             }
-            return Feedback.Errors.json("No UUID provided");
+
+            String content = DataManager.getFileContents(new File("polls/" + param + "/data.json"));
+            if(content == null) return Feedback.Errors.json("Poll not found");
+            return content;
+//            if(PollUtils.getPoll(Long.parseLong(param)) == null) return Feedback.Errors.json("Poll not found");
+//            return PollUtils.getPoll(Long.parseLong(param)).json();
+//            return Feedback.Errors.json("No UUID provided");
         });
         get(Bot.API_ENTRY_POINT() + "/:uuid", (req, res) -> {
             String param = req.params(":uuid");

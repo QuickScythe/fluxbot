@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PollCommand extends CustomCommand {
+
+    private final char[] ALPHABET = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+
     public PollCommand(Guild guild, String label, String desc, OptionData... options) {
 
         super(guild, label, desc, options);
@@ -25,7 +28,7 @@ public class PollCommand extends CustomCommand {
             List<PollOption> answers = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
                 if (event.getOption("answer" + i) != null) {
-                    answers.add(new PollOption(event.getOption("answer" + i).getAsString()));
+                    answers.add(new PollOption(ALPHABET[i], event.getOption("answer" + i).getAsString()));
                 }
             }
             event.deferReply().queue();

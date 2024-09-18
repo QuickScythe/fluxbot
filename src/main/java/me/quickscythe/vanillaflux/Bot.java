@@ -169,6 +169,7 @@ public class Bot {
         ));
         api.addEventListener(new ButtonListener());
         PollUtils.init();
+        Utils.getLogger().LOG.info("TEST");
 
     }
 
@@ -239,7 +240,7 @@ public class Bot {
     }
 
     public static long GUILD_ID() {
-        return GUILD_ID;
+        return CONFIG.getLong("guild_id");
     }
 
     public static long INACTIVE_ROLE() {

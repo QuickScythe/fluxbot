@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BotLogger {
-    private final Logger LOG;
+    public final Logger LOG;
     Map<Long, QueuedLog> queue = new HashMap<>();
 
     public BotLogger(String name) {
@@ -34,6 +34,7 @@ public class BotLogger {
                 Utils.getLogsChannel().sendMessageEmbeds(new EmbedBuilder().setColor(Color.GREEN).setTitle("INFO").setDescription(message).build()).queue();
         } catch (Exception ex) {
             queue.put(new Date().getTime(), new QueuedLog(LogLevel.INFO, message, logToDiscord));
+            LOG.error("Error" , ex);
         }
     }
 
@@ -48,6 +49,7 @@ public class BotLogger {
                 Utils.getLogsChannel().sendMessageEmbeds(new EmbedBuilder().setColor(Color.ORANGE).setTitle("WARN").setDescription(message).build()).queue();
         } catch (Exception ex) {
             queue.put(new Date().getTime(), new QueuedLog(LogLevel.WARN, message, logToDiscord));
+            LOG.error("Error" , ex);
         }
     }
 
@@ -62,6 +64,7 @@ public class BotLogger {
                 Utils.getLogsChannel().sendMessageEmbeds(new EmbedBuilder().setColor(Color.RED).setTitle("ERROR").setDescription(logToDiscord.equals("=") ? message : logToDiscord).build()).queue();
         } catch (Exception ex) {
             queue.put(new Date().getTime(), new QueuedLog(LogLevel.ERROR, message, !logToDiscord.isEmpty()));
+            LOG.error("Error" , ex);
         }
     }
 

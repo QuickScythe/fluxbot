@@ -4,8 +4,9 @@ import json2.JSONArray;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
-import me.quickscythe.vanillaflux.utils.polls.charts.PieChartGenerator;
+import me.quickscythe.vanillaflux.utils.polls.charts.ChartGenerator;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,8 +35,10 @@ public class Poll {
     private long duration = 0;
     private String question = "?";
     private EmbedBuilder pollMessage;
-    private List<PollOption> options = new ArrayList<>();
+    private LinkedHashMap<Character, PollOption> options = new LinkedHashMap<>();
     private boolean open;
+
+//    private final char[] ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
     public Poll(long uid, JSONObject object) throws Exception {
 
@@ -47,12 +51,12 @@ public class Poll {
         for (int i = 0; i < options.length(); i++) {
             JSONObject option = options.getJSONObject(i);
             PollOption pollOption = new PollOption(option);
-            this.options.add(pollOption);
+            this.options.put(pollOption.getId(), pollOption);
         }
         channel.retrieveMessageById(uid).queue(message -> {
             for (ActionRow row : message.getActionRows()) {
                 for (Button button : row.getButtons()) {
-                    for (PollOption option : this.options) {
+                    for (PollOption option : this.options.values()) {
                         if (button.getId().equals("poll_button-" + this.started + option.getAnswer())) {
                             option.setButton(button);
                         }
@@ -63,10 +67,10 @@ public class Poll {
             pollMessage.setColor(Color.RED);
             pollMessage.setTitle(question);
             int total = getTotalVotes();
-            for (PollOption answer : this.options) {
+            for (PollOption answer : this.options.values()) {
                 int votes = answer.getVotes();
                 double percent = ((((double) votes) / ((double) total)) * 100D);
-                pollMessage.addField(answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
+                pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
 
             }
             pollMessage.setFooter("Votes: " + total);
@@ -80,7 +84,9 @@ public class Poll {
         this.channel = channel;
         this.question = question;
         this.duration = duration;
-        this.options.addAll(Arrays.asList(options));
+        for(PollOption option : options){
+            this.options.put(option.getId(), option);
+        }
         this.open = false;
         open(hook);
     }
@@ -89,7 +95,9 @@ public class Poll {
         this.channel = channel;
         this.question = question;
         this.duration = duration;
-        this.options = options;
+        for(PollOption option : options){
+            this.options.put(option.getId(), option);
+        }
         this.open = false;
 
         open(hook);
@@ -100,13 +108,13 @@ public class Poll {
         open = true;
         this.started = new Date().getTime();
         pollMessage = new EmbedBuilder();
-        pollMessage.setColor(Color.CYAN);
+        pollMessage.setColor(new Color(0x27FAE8));
         pollMessage.setTitle(question);
         List<Button> buttons = new ArrayList<>();
-        for (PollOption answer : options) {
+        for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
             double percent = ((((double) votes) / ((double) getTotalVotes())) * 100D);
-            pollMessage.addField(answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
+            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
             Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getAnswer(), answer.getAnswer());
             answer.setButton(button);
             buttons.add(button);
@@ -116,7 +124,7 @@ public class Poll {
     }
 
 
-    public List<PollOption> getOptions() {
+    public LinkedHashMap<Character, PollOption> getOptions() {
         return options;
     }
 
@@ -133,24 +141,19 @@ public class Poll {
             event.reply("You cannot vote in polls while inactive. Please join the server to get your active role back.").setEphemeral(true).queue();
             return;
         }
-        for(PollOption option : options){
-            if(option.getVoteList().contains(user.getIdLong())){
-                option.getVoteList().remove(user.getIdLong());
-            }
+        for(PollOption option : options.values()){
+            option.getVoteList().remove(user.getIdLong());
         }
         pollMessage.clearFields();
         userAnswer.vote(user);
         int total = getTotalVotes();
-        for (PollOption answer : options) {
-            System.out.println("Checking option: " + answer.getAnswer());
+        for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
             //use this unicode character to make the poll look better (█)
             double percent = ((((double) votes) / ((double) total)) * 100D);
-            pollMessage.addField(answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
+            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
         }
-        System.out.println("Total votes: " + total);
         pollMessage.setFooter("Votes: " + total);
-        pollMessage.setColor(Color.green);
         event.editMessageEmbeds(pollMessage.build()).queue();
 //        hook.editMessageEmbedsById(pollMessageId).applyMessage()
     }
@@ -158,7 +161,7 @@ public class Poll {
 
     private int getTotalVotes() {
         int votes = 0;
-        for (PollOption option : options) {
+        for (PollOption option : options.values()) {
             votes += option.getVotes();
         }
         return votes;
@@ -180,58 +183,78 @@ public class Poll {
     public void close() {
         open = false;
         save();
+
+        //Close old poll
+        RestAction<Message> oldMsg = channel.retrieveMessageById(uid);
+        oldMsg.queue(message -> {
+            for(Button button : message.getButtons()){
+                message.editMessageComponents(ActionRow.of(button.asDisabled())).queue();
+            }
+            pollMessage.setColor(new Color(0xF43C57));
+            message.editMessageEmbeds(pollMessage.build()).queue();
+        });
+
+
+        //Send new embed with results
+
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Poll Closed (" + question + ")");
+        builder.setColor(new Color(0xF43C57));
+        for(PollOption option : options.values()){
+            builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
+        }
+        Button button = Button.link(oldMsg.complete().getJumpUrl(), "Go to poll");
 //        builder.addField("poll-" + uid, "This poll has been closed. Results are as follows:", false);
         try {
             InputStream file = URI.create("http://localhost:" + Bot.WEB_PORT() + Bot.API_ENTRY_POINT() + "/polls/" + uid + ".png").toURL().openStream();
             builder.setImage("attachment://" + uid + ".png") // we specify this in sendFile as "cat.png"
-                    .setDescription("Poll Results");
-            channel.sendFiles(FileUpload.fromData(file, uid + ".png")).setEmbeds(builder.build()).queue();
-//            builder.setImage("http://localhost:8585/api/polls/1285785724523909203.png");
+                    .setDescription("Poll Results for " + question);
+//            channel.sendFiles(FileUpload.fromData(file, uid + ".png"))
+//                    .setEmbeds(builder.build()).queue();
+            channel.sendMessageEmbeds(builder.build())
+                    .addActionRow(button)
+                    .addFiles(FileUpload.fromData(file, uid + ".png"))
+                    .queue();
         } catch (IOException e) {
             Utils.getLogger().error("Error", e);
-            builder.addField("Error", "Results could not be found", false);
-            channel.sendMessageEmbeds(builder.build()).queue();
+            builder.addField("Error", "Couldn't load image.", false);
+            channel.sendMessageEmbeds(builder.build()).addActionRow(button).queue();
+
         }
-
-
-//        Utils.getLogger().log("Poll closed: " + question + "", true);
-
     }
 
     public void save() {
-        File file = new File(PollUtils.getPollFolder() + "/" + uid + ".json");
+        File file = new File(PollUtils.getPollFolder(), uid + "/data.json");
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
         JSONObject object = json();
         Map<String, Integer> data = new HashMap<>();
-        for (PollOption option : options) {
-            data.put(option.getAnswer(), option.getVotes());
+        for (PollOption option : options.values()) {
+            data.put(option.getId() + "", option.getVotes());
         }
 
-        PieChartGenerator.generatePieChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + ".png");
+        ChartGenerator.generatePieChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + "/results.png");
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(object.toString(2));
             Utils.getLogger().log("Poll saved: " + question);
-            System.out.println("File written successfully");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @NotNull
-    private JSONObject json() {
+    public JSONObject json() {
         JSONObject object = new JSONObject();
         object.put("question", question);
         object.put("duration", duration);
         object.put("started", started);
         object.put("channel", channel.getId());
         JSONArray options = new JSONArray();
-        for (PollOption option : this.options) {
+        for (PollOption option : this.options.values()) {
             JSONObject optionObject = new JSONObject();
             optionObject.put("answer", option.getAnswer());
+            optionObject.put("id", option.getId());
             JSONArray votes = new JSONArray();
             for (Long vote : option.getVoteList()) {
                 votes.put(vote);
@@ -241,6 +264,7 @@ public class Poll {
         }
         object.put("options", options);
         object.put("open", open);
+        object.put("uid", uid);
         return object;
     }
 
