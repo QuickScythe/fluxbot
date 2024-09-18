@@ -2,9 +2,9 @@ package me.quickscythe.vanillaflux;
 
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.listeners.ButtonListener;
+import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.listeners.commands.LinkCommand;
 import me.quickscythe.vanillaflux.listeners.commands.PollCommand;
-import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
@@ -78,7 +78,13 @@ public class Bot {
         api.addEventListener(new MessageListener());
         saveConfig();
         new WebApp();
-        api.addEventListener(new PollCommand(Utils.getGuild(), "apoll", "Create a poll",
+        Utils.getGuild().retrieveCommands().complete().forEach(command -> {
+            if (command.getName().contains("apoll") || command.getName().contains("epoll"))
+                Utils.getGuild().deleteCommandById(command.getId()).queue();
+        });
+
+
+        api.addEventListener(new PollCommand(Utils.getGuild(), "poll", "Create a poll",
                 new OptionData(
                         OptionType.STRING,
                         "question",
