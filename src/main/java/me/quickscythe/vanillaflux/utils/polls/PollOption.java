@@ -1,5 +1,6 @@
 package me.quickscythe.vanillaflux.utils.polls;
 
+import json2.JSONObject;
 import me.quickscythe.vanillaflux.utils.UID;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -10,10 +11,18 @@ import java.util.List;
 import static me.quickscythe.vanillaflux.utils.Utils.newUID;
 
 public class PollOption {
-    String answer;
-    UID id;
-    Button button;
-    List<Long> votes = new ArrayList<>();
+    private String answer;
+    private UID id;
+    private Button button;
+    private List<Long> votes = new ArrayList<>();
+
+    public PollOption(JSONObject data){
+        answer = data.getString("answer");
+        for(int i=0; i<data.getJSONArray("votes").length(); i++){
+            votes.add(data.getJSONArray("votes").getLong(i));
+        }
+        id = newUID();
+    }
 
     public PollOption(String answer) {
         this.answer = answer;
@@ -53,12 +62,12 @@ public class PollOption {
         return progressBar.toString();
     }
 
-    public int getVotes(String from) {
-        System.out.println("Checking for vote on " + answer + " (" + from + ")");
-        for(int i=0; i<votes.size(); i++){
-            System.out.println("Checking for vote on " + answer + " (" + i + "): " + votes.get(i));
-        }
+    public int getVotes() {
         return votes.size();
+    }
+
+    public List<Long> getVoteList() {
+        return votes;
     }
 
     public void vote(User user) {

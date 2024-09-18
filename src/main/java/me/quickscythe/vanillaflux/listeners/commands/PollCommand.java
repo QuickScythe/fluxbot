@@ -28,13 +28,8 @@ public class PollCommand extends CustomCommand {
                     answers.add(new PollOption(event.getOption("answer" + i).getAsString()));
                 }
             }
-
-
-            Poll poll = PollUtils.createPoll(event.getChannel().asTextChannel(), question, dur, answers);
             event.deferReply().queue();
-            poll.open(event.getHook());
-//            event.getOption("question").getAsString();
-//            event.reply("Hello").complete();
+            PollUtils.createPoll(event.getHook(), event.getChannel().asTextChannel(), question, dur, answers);
         }
     }
 

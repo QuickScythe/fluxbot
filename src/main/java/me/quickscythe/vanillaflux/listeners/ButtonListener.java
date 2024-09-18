@@ -14,8 +14,9 @@ public class ButtonListener extends ListenerAdapter {
         if(event.getComponentId().startsWith("poll_button-")){
             System.out.println("Poll button clicked");
             for(Poll poll : PollUtils.getPolls()){
-                System.out.println("Checking poll: " + poll.getQuestion() + " (" + poll.getUid() + ")");
+//                System.out.println("Checking poll: " + poll.getQuestion() + " (" + poll.getUid() + ")");
                 for(PollOption option : poll.getOptions()){
+                    if(option.getButton() == null) continue;
                     System.out.println("Checking option: " + option.getAnswer() + " (" + option.getButton().getId() + ")");
                     if(option.getButton().getId().equals(event.getComponentId())){
                         System.out.println("Voting for option: " + option.getAnswer());

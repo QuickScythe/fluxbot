@@ -3,7 +3,9 @@ package me.quickscythe.vanillaflux.listeners;
 import json2.JSONArray;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
+import me.quickscythe.vanillaflux.utils.UID;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 import net.dv8tion.jda.api.entities.Message;
@@ -34,6 +36,15 @@ public class MessageListener extends ListenerAdapter {
         if (cmd.equals(Bot.CMD_PREFIX() + "runsearch")) {
             event.getChannel().sendMessage("Running inactive search now.").queue();
             Utils.runInactiveSearch();
+        }
+
+        if (cmd.equals(Bot.CMD_PREFIX() + "closepoll")) {
+            if (args.length < 2) {
+                event.getChannel().sendMessage("Usage: `" + Bot.CMD_PREFIX() + "closepoll <uid>`").queue();
+                return;
+            }
+            String uid = args[1];
+            PollUtils.getPoll(UID.from(uid)).close();
         }
 
         if (cmd.equals(Bot.CMD_PREFIX() + "update")) {

@@ -1,3 +1,5 @@
+val jfreeVersion: String by project
+
 val sparkVersion: String by project
 val sqlVersion: String by project
 val junitVersion: String by project
@@ -29,7 +31,9 @@ dependencies {
     implementation("net.dv8tion:JDA:$jdaVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("com.sparkjava:spark-core:$sparkVersion")
-    implementation("mysql", "mysql-connector-java", sqlVersion);
+    implementation("mysql", "mysql-connector-java", sqlVersion)
+    implementation("org.jfree:jfreechart:${jfreeVersion}")
+
 
 //    api group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
 

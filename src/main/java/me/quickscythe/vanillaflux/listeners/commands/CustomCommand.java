@@ -12,7 +12,8 @@ public class CustomCommand extends ListenerAdapter {
 
     public CustomCommand(Guild guild, String label, String desc, OptionData... options) {
         this.label = label;
-        guild.updateCommands().addCommands(Commands.slash(label, desc).addOptions(options)).queue();
+        guild.upsertCommand(Commands.slash(label, desc).addOptions(options)).queue();
+//        guild.updateCommands().addCommands(Commands.slash(label, desc).addOptions(options)).queue();
     }
 
     @Override

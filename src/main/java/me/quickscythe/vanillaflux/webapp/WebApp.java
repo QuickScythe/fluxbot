@@ -8,6 +8,10 @@ import me.quickscythe.vanillaflux.utils.Utils;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -20,6 +24,21 @@ public class WebApp {
         port(Bot.WEB_PORT());
         get(Bot.API_ENTRY_POINT(), (req, res) -> {
             res.type("application/json");
+            return Feedback.Errors.json("No UUID provided");
+        });
+        get(Bot.API_ENTRY_POINT() + "/polls/:action", (req, res) -> {
+            String param = req.params(":action");
+            res.type("application/json");
+            if(param.endsWith(".png")){
+                res.type("image/png");
+                try (InputStream imageStream = new FileInputStream("polls/" + param)) {
+                    byte[] imageBytes = imageStream.readAllBytes();
+                    return imageBytes;
+                } catch (IOException e) {
+                    res.status(404);
+                    return "Image not found";
+                }
+            }
             return Feedback.Errors.json("No UUID provided");
         });
         get(Bot.API_ENTRY_POINT() + "/:uuid", (req, res) -> {

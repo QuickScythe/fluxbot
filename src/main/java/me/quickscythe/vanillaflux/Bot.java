@@ -2,9 +2,11 @@ package me.quickscythe.vanillaflux;
 
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.listeners.ButtonListener;
+import me.quickscythe.vanillaflux.listeners.commands.LinkCommand;
 import me.quickscythe.vanillaflux.listeners.commands.PollCommand;
 import me.quickscythe.vanillaflux.listeners.MessageListener;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
 import me.quickscythe.vanillaflux.webapp.WebApp;
 import net.dv8tion.jda.api.JDA;
@@ -73,7 +75,7 @@ public class Bot {
         api.addEventListener(new MessageListener());
         saveConfig();
         new WebApp();
-        api.addEventListener(new PollCommand(Utils.getGuild(), "epoll", "Create a poll",
+        api.addEventListener(new PollCommand(Utils.getGuild(), "poll", "Create a poll",
                 new OptionData(
                         OptionType.STRING,
                         "question",
@@ -148,7 +150,16 @@ public class Bot {
                         false)
 
         ));
+        api.addEventListener(new LinkCommand(Utils.getGuild(), "link", "Link your Discord account to the server.",
+                new OptionData(
+                        OptionType.STRING,
+                        "key",
+                        "The key you received from the server",
+                        true,
+                        false)
+        ));
         api.addEventListener(new ButtonListener());
+        PollUtils.init();
 
     }
 
