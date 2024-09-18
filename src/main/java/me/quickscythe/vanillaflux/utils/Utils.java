@@ -23,6 +23,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -35,7 +40,8 @@ public class Utils {
     private static BotLogger LOG;
     private static Api fluxApi;
     private static final List<UID> uids = new ArrayList<>();
-
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
+    private static final DecimalFormat df = new DecimalFormat("#.00");
 
     public static void _before_init() {
         LOG = new BotLogger("FluxApi");
@@ -257,5 +263,13 @@ public class Utils {
         for(String token : remove_tokens){
             TokenManager.removeToken(token);
         }
+    }
+
+    public static String formatTime(long l) {
+        return Instant.ofEpochMilli(l).atZone(ZoneId.systemDefault()).format(formatter);
+    }
+
+    public static double formatDecimal(double d){
+        return Double.parseDouble(df.format(d));
     }
 }

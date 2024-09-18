@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 
@@ -38,6 +39,8 @@ public class Poll {
     private LinkedHashMap<Character, PollOption> options = new LinkedHashMap<>();
     private boolean open;
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
+
 //    private final char[] ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
     public Poll(long uid, JSONObject object) throws Exception {
@@ -47,6 +50,7 @@ public class Poll {
         this.duration = object.getLong("duration");
         this.started = object.getLong("started");
         this.open = object.getBoolean("open");
+        this.uid = uid;
         JSONArray options = object.getJSONArray("options");
         for (int i = 0; i < options.length(); i++) {
             JSONObject option = options.getJSONObject(i);
@@ -57,23 +61,30 @@ public class Poll {
             for (ActionRow row : message.getActionRows()) {
                 for (Button button : row.getButtons()) {
                     for (PollOption option : this.options.values()) {
-                        if (button.getId().equals("poll_button-" + this.started + option.getAnswer())) {
+                        if (button.getId().equals("poll_button-" + this.started + option.getId())) {
                             option.setButton(button);
                         }
                     }
                 }
             }
             pollMessage = new EmbedBuilder();
-            pollMessage.setColor(Color.RED);
+
             pollMessage.setTitle(question);
             int total = getTotalVotes();
             for (PollOption answer : this.options.values()) {
                 int votes = answer.getVotes();
-                double percent = ((((double) votes) / ((double) total)) * 100D);
+                double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
                 pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
 
             }
-            pollMessage.setFooter("Votes: " + total);
+            if(open) {
+                pollMessage.setColor(new Color(0x27FAE8));
+                pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
+            }else {
+                pollMessage.setColor(new Color(0xF43C57));
+                pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
+            }
+//            pollMessage.setFooter("Votes: " + total);
             message.editMessageEmbeds(pollMessage.build()).queue();
 
         });
@@ -114,10 +125,11 @@ public class Poll {
         for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
             pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
-            Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getAnswer(), answer.getAnswer());
+            Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getId(), answer.getAnswer());
             answer.setButton(button);
             buttons.add(button);
         }
+        pollMessage.setFooter("Poll open until " + Utils.formatTime(started+duration) + ". Votes: 0");
         uid = hook.sendMessageEmbeds(pollMessage.build()).addActionRow(buttons).complete().getIdLong();
         save();
     }
@@ -149,11 +161,12 @@ public class Poll {
         for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
             //use this unicode character to make the poll look better (█)
-            double percent = ((((double) votes) / ((double) total)) * 100D);
+            double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
             pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
         }
-        pollMessage.setFooter("Votes: " + total);
+        pollMessage.setFooter("Poll open until " + Utils.formatTime(started+duration) + ". Votes: " + total);
         event.editMessageEmbeds(pollMessage.build()).queue();
+        save();
 //        hook.editMessageEmbedsById(pollMessageId).applyMessage()
     }
 
@@ -181,6 +194,10 @@ public class Poll {
 
     public void close() {
         open = false;
+        long now = new Date().getTime();
+        if(started + duration > now) {
+            duration = now - started;
+        }
         save();
 
         //Close old poll
@@ -191,6 +208,7 @@ public class Poll {
                 message.editMessageComponents(ActionRow.of(button.asDisabled())).queue();
             }
             pollMessage.setColor(new Color(0xF43C57));
+            pollMessage.setFooter("Poll closed " + Utils.formatTime(started+duration) + ". Votes: " + getTotalVotes());
             message.editMessageEmbeds(pollMessage.build()).queue();
         });
 
