@@ -61,7 +61,7 @@ public class Poll {
             for (ActionRow row : message.getActionRows()) {
                 for (Button button : row.getButtons()) {
                     for (PollOption option : this.options.values()) {
-                        if (button.getId().equals("poll_button-" + this.started + option.getId())) {
+                        if (button.getId().equals("poll_button-" + this.started + option.getAnswer())) {
                             option.setButton(button);
                         }
                     }
@@ -125,7 +125,7 @@ public class Poll {
         for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
             pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
-            Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getId(), answer.getAnswer());
+            Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getAnswer(), answer.getAnswer());
             answer.setButton(button);
             buttons.add(button);
         }
