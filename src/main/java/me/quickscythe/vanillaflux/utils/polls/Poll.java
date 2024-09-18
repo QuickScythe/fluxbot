@@ -113,7 +113,6 @@ public class Poll {
         List<Button> buttons = new ArrayList<>();
         for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
-            double percent = ((((double) votes) / ((double) getTotalVotes())) * 100D);
             pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
             Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getAnswer(), answer.getAnswer());
             answer.setButton(button);
@@ -185,8 +184,9 @@ public class Poll {
         save();
 
         //Close old poll
-        RestAction<Message> oldMsg = channel.retrieveMessageById(uid);
-        oldMsg.queue(message -> {
+        String poll_link = channel.retrieveMessageById(uid).complete().getJumpUrl();
+        channel.retrieveMessageById(uid).queue(message -> {
+//            poll_link = message.getJumpUrl();
             for(Button button : message.getButtons()){
                 message.editMessageComponents(ActionRow.of(button.asDisabled())).queue();
             }
@@ -203,7 +203,7 @@ public class Poll {
         for(PollOption option : options.values()){
             builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
         }
-        Button button = Button.link(oldMsg.complete().getJumpUrl(), "Go to poll");
+        Button button = Button.link(poll_link, "Go to poll");
 //        builder.addField("poll-" + uid, "This poll has been closed. Results are as follows:", false);
         try {
             InputStream file = URI.create("http://localhost:" + Bot.WEB_PORT() + Bot.API_ENTRY_POINT() + "/polls/" + uid + ".png").toURL().openStream();
@@ -250,6 +250,15 @@ public class Poll {
         object.put("duration", duration);
         object.put("started", started);
         object.put("channel", channel.getId());
+        JSONArray options = jsonOptions();
+        object.put("options", options);
+        object.put("open", open);
+        object.put("uid", uid);
+        return object;
+    }
+
+    @NotNull
+    private JSONArray jsonOptions() {
         JSONArray options = new JSONArray();
         for (PollOption option : this.options.values()) {
             JSONObject optionObject = new JSONObject();
@@ -262,10 +271,7 @@ public class Poll {
             optionObject.put("votes", votes);
             options.put(optionObject);
         }
-        object.put("options", options);
-        object.put("open", open);
-        object.put("uid", uid);
-        return object;
+        return options;
     }
 
     public TextChannel getChannel() {
