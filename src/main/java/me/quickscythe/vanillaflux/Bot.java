@@ -3,10 +3,7 @@ package me.quickscythe.vanillaflux;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.listeners.ButtonListener;
 import me.quickscythe.vanillaflux.listeners.MessageListener;
-import me.quickscythe.vanillaflux.listeners.commands.LinkCommand;
-import me.quickscythe.vanillaflux.listeners.commands.PollCloseCommand;
-import me.quickscythe.vanillaflux.listeners.commands.PollCommand;
-import me.quickscythe.vanillaflux.listeners.commands.PollVotersCommand;
+import me.quickscythe.vanillaflux.listeners.commands.*;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
@@ -93,6 +90,25 @@ public class Bot {
                         "Message ID of the poll",
                         true,
                         true)));
+        api.addEventListener(new EditPollCommand(Utils.getGuild(), "edit-poll", "Edit a poll",
+                new OptionData(
+                        OptionType.STRING,
+                        "id",
+                        "Message ID of the poll",
+                        true,
+                        true),
+                new OptionData(
+                        OptionType.STRING,
+                        "option",
+                        "Option to edit",
+                        true,
+                        true),
+                new OptionData(
+                        OptionType.STRING,
+                        "newoption",
+                        "New option",
+                        true,
+                        false)));
         api.addEventListener(new PollCloseCommand(Utils.getGuild(), "close-poll", "Close a poll early.",
                 new OptionData(
                         OptionType.STRING,

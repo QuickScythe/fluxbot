@@ -75,4 +75,8 @@ public class PollOption {
         if(votes.contains(user.getIdLong())) return;
         votes.add(user.getIdLong());
     }
+
+    public void setAnswer(String newOption) {
+        answer = newOption;
+    }
 }

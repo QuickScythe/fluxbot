@@ -69,26 +69,38 @@ public class Poll {
             }
             pollMessage = new EmbedBuilder();
 
-            pollMessage.setTitle(question);
-            int total = getTotalVotes();
-            for (PollOption answer : this.options.values()) {
-                int votes = answer.getVotes();
-                double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
-                pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
-
-            }
-            if(open) {
-                pollMessage.setColor(new Color(0x27FAE8));
-                pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
-            }else {
-                pollMessage.setColor(new Color(0xF43C57));
-                pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
-            }
+            buildPollMessage();
 //            pollMessage.setFooter("Votes: " + total);
             message.editMessageEmbeds(pollMessage.build()).queue();
 
         });
 
+    }
+
+    public void update(){
+        channel.retrieveMessageById(uid).queue(message -> {
+            pollMessage = new EmbedBuilder();
+            buildPollMessage();
+            message.editMessageEmbeds(pollMessage.build()).queue();
+        });
+    }
+
+    private void buildPollMessage() {
+        pollMessage.setTitle(question);
+        int total = getTotalVotes();
+        for (PollOption answer : this.options.values()) {
+            int votes = answer.getVotes();
+            double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
+            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
+
+        }
+        if(open) {
+            pollMessage.setColor(new Color(0x27FAE8));
+            pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
+        }else {
+            pollMessage.setColor(new Color(0xF43C57));
+            pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
+        }
     }
 
     public Poll(InteractionHook hook, TextChannel channel, String question, long duration, PollOption... options) {
@@ -298,5 +310,9 @@ public class Poll {
 
     public long getUid() {
         return uid;
+    }
+
+    public PollOption getOption(char id){
+        return options.get(id);
     }
 }
