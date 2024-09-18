@@ -77,7 +77,7 @@ public class Bot {
         api.addEventListener(new MessageListener());
         saveConfig();
         new WebApp();
-        api.addEventListener(new PollCommand(Utils.getGuild(), "poll", "Create a poll",
+        api.addEventListener(new PollCommand(Utils.getGuild(), "apoll", "Create a poll",
                 new OptionData(
                         OptionType.STRING,
                         "question",
