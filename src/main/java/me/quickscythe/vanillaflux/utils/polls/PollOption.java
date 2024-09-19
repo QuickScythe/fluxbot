@@ -48,7 +48,7 @@ public class PollOption {
 
     public String getProgressBar(double percent) {
         if(percent == 0) percent = 0.01;
-        int totalBars = 40; // Total number of bars in the progress bar
+        int totalBars = 30; // Total number of bars in the progress bar
         StringBuilder progressBar = new StringBuilder();
         progressBar.append("`");
         for(int i=0; i<totalBars; i++){

@@ -6,15 +6,17 @@ import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.charts.ChartGenerator;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.Route;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +32,7 @@ import java.util.*;
 
 public class Poll {
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
     long started = 0;
     private long uid = 0;
     private TextChannel channel = null;
@@ -38,8 +41,6 @@ public class Poll {
     private EmbedBuilder pollMessage;
     private LinkedHashMap<Character, PollOption> options = new LinkedHashMap<>();
     private boolean open;
-
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
 
 //    private final char[] ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
@@ -61,7 +62,7 @@ public class Poll {
             for (ActionRow row : message.getActionRows()) {
                 for (Button button : row.getButtons()) {
                     for (PollOption option : this.options.values()) {
-                        if (button.getId().equals("poll_button-" + this.started + option.getAnswer())) {
+                        if (button.getId().equals("poll_button-" + this.started + option.getId())) {
                             option.setButton(button);
                         }
                     }
@@ -77,37 +78,11 @@ public class Poll {
 
     }
 
-    public void update(){
-        channel.retrieveMessageById(uid).queue(message -> {
-            pollMessage = new EmbedBuilder();
-            buildPollMessage();
-            message.editMessageEmbeds(pollMessage.build()).queue();
-        });
-    }
-
-    private void buildPollMessage() {
-        pollMessage.setTitle(question);
-        int total = getTotalVotes();
-        for (PollOption answer : this.options.values()) {
-            int votes = answer.getVotes();
-            double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
-            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
-
-        }
-        if(open) {
-            pollMessage.setColor(new Color(0x27FAE8));
-            pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
-        }else {
-            pollMessage.setColor(new Color(0xF43C57));
-            pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
-        }
-    }
-
     public Poll(InteractionHook hook, TextChannel channel, String question, long duration, PollOption... options) {
         this.channel = channel;
         this.question = question;
         this.duration = duration;
-        for(PollOption option : options){
+        for (PollOption option : options) {
             this.options.put(option.getId(), option);
         }
         this.open = false;
@@ -118,13 +93,46 @@ public class Poll {
         this.channel = channel;
         this.question = question;
         this.duration = duration;
-        for(PollOption option : options){
+        for (PollOption option : options) {
             this.options.put(option.getId(), option);
         }
         this.open = false;
 
         open(hook);
 
+    }
+
+    public void update() {
+        channel.retrieveMessageById(uid).queue(message -> {
+            pollMessage = new EmbedBuilder();
+            buildPollMessage();
+            message.editMessageEmbeds(pollMessage.build()).queue();
+            for (Button button : message.getButtons()) {
+                for (PollOption option : options.values()) {
+                    if (button.getId().equals("poll_button-" + this.started + option.getId())) {
+                        option.setButton(button.withLabel(option.getAnswer()));
+                    }
+                }
+            }
+        });
+    }
+
+    private void buildPollMessage() {
+        pollMessage.setTitle(question);
+        int total = getTotalVotes();
+        for (PollOption answer : this.options.values()) {
+            int votes = answer.getVotes();
+            double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
+//            pollMessage.addField(":regional_indicator_" + (answer.getId() + "").toLowerCase() + ": " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
+            pollMessage.addField(getOptionField(answer));
+        }
+        if (open) {
+            pollMessage.setColor(new Color(0x27FAE8));
+            pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
+        } else {
+            pollMessage.setColor(new Color(0xF43C57));
+            pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
+        }
     }
 
     private void open(InteractionHook hook) {
@@ -136,12 +144,13 @@ public class Poll {
         List<Button> buttons = new ArrayList<>();
         for (PollOption answer : options.values()) {
             int votes = answer.getVotes();
-            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
-            Button button = Button.of(ButtonStyle.SUCCESS, "poll_button-" + this.started + answer.getAnswer(), answer.getAnswer());
+//            pollMessage.addField( ":regional_indicator_" + (answer.getId() + "").toLowerCase() + ": " + answer.getAnswer(), answer.getProgressBar(0) + "  |  **" + 0 + "%**  _(" + votes + ")_", false);
+            pollMessage.addField(getOptionField(answer));
+            Button button = Button.of(ButtonStyle.PRIMARY, "poll_button-" + this.started + answer.getId(), answer.getId() + "");
             answer.setButton(button);
             buttons.add(button);
         }
-        pollMessage.setFooter("Poll open until " + Utils.formatTime(started+duration) + ". Votes: 0");
+        pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: 0");
         uid = hook.sendMessageEmbeds(pollMessage.build()).addActionRow(buttons).complete().getIdLong();
         save();
     }
@@ -164,22 +173,25 @@ public class Poll {
             event.reply("You cannot vote in polls while inactive. Please join the server to get your active role back.").setEphemeral(true).queue();
             return;
         }
-        for(PollOption option : options.values()){
+        for (PollOption option : options.values()) {
             option.getVoteList().remove(user.getIdLong());
         }
         pollMessage.clearFields();
         userAnswer.vote(user);
         int total = getTotalVotes();
         for (PollOption answer : options.values()) {
-            int votes = answer.getVotes();
-            //use this unicode character to make the poll look better (█)
-            double percent = Utils.formatDecimal((((double) votes) / ((double) total)) * 100D);
-            pollMessage.addField("(" + answer.getId() + ") " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
+            pollMessage.addField(getOptionField(answer));
         }
-        pollMessage.setFooter("Poll open until " + Utils.formatTime(started+duration) + ". Votes: " + total);
+        pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
         event.editMessageEmbeds(pollMessage.build()).queue();
         save();
-//        hook.editMessageEmbedsById(pollMessageId).applyMessage()
+        event.reply("You voted for " + userAnswer.getAnswer()).setEphemeral(true).queue();
+    }
+
+    private MessageEmbed.Field getOptionField(PollOption answer) {
+        double percent = Utils.formatDecimal((((double) answer.getVotes()) / ((double) getTotalVotes())) * 100D);
+        return new MessageEmbed.Field(":regional_indicator_" + (answer.getId() + "").toLowerCase() + ": " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + answer.getVotes() + ")_", false);
+
     }
 
 
@@ -207,7 +219,7 @@ public class Poll {
     public void close() {
         open = false;
         long now = new Date().getTime();
-        if(started + duration > now) {
+        if (started + duration > now) {
             duration = now - started;
         }
         save();
@@ -216,11 +228,11 @@ public class Poll {
         String poll_link = channel.retrieveMessageById(uid).complete().getJumpUrl();
         channel.retrieveMessageById(uid).queue(message -> {
 //            poll_link = message.getJumpUrl();
-            for(Button button : message.getButtons()){
+            for (Button button : message.getButtons()) {
                 message.editMessageComponents(ActionRow.of(button.asDisabled())).queue();
             }
             pollMessage.setColor(new Color(0xF43C57));
-            pollMessage.setFooter("Poll closed " + Utils.formatTime(started+duration) + ". Votes: " + getTotalVotes());
+            pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + getTotalVotes());
             message.editMessageEmbeds(pollMessage.build()).queue();
         });
 
@@ -230,7 +242,7 @@ public class Poll {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Poll Closed (" + question + ")");
         builder.setColor(new Color(0xF43C57));
-        for(PollOption option : options.values()){
+        for (PollOption option : options.values()) {
             builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
         }
         Button button = Button.link(poll_link, "Go to poll");
@@ -241,10 +253,7 @@ public class Poll {
                     .setDescription("Poll Results for " + question);
 //            channel.sendFiles(FileUpload.fromData(file, uid + ".png"))
 //                    .setEmbeds(builder.build()).queue();
-            channel.sendMessageEmbeds(builder.build())
-                    .addActionRow(button)
-                    .addFiles(FileUpload.fromData(file, uid + ".png"))
-                    .queue();
+            channel.sendMessageEmbeds(builder.build()).addActionRow(button).addFiles(FileUpload.fromData(file, uid + ".png")).queue();
         } catch (IOException e) {
             Utils.getLogger().error("Error", e);
             builder.addField("Error", "Couldn't load image.", false);
@@ -261,7 +270,7 @@ public class Poll {
         JSONObject object = json();
         Map<String, Integer> data = new HashMap<>();
         for (PollOption option : options.values()) {
-            data.put(option.getId() + "", option.getVotes());
+            if (option.getVotes() > 0) data.put(option.getId() + "", option.getVotes());
         }
 
         ChartGenerator.generatePieChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + "/results.png");
@@ -312,7 +321,7 @@ public class Poll {
         return uid;
     }
 
-    public PollOption getOption(char id){
+    public PollOption getOption(char id) {
         return options.get(id);
     }
 }
