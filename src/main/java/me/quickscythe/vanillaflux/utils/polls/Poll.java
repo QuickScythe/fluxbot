@@ -9,14 +9,11 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.requests.Route;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
@@ -126,20 +123,19 @@ public class Poll {
 //            pollMessage.addField(":regional_indicator_" + (answer.getId() + "").toLowerCase() + ": " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + votes + ")_", false);
             pollMessage.addField(getOptionField(answer));
         }
-        if (open) {
-            pollMessage.setColor(new Color(0x27FAE8));
+        pollMessage.setColor(getColor());
+        if (open)
             pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
-        } else {
-            pollMessage.setColor(new Color(0xF43C57));
+        else
             pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
-        }
+
     }
 
     private void open(InteractionHook hook) {
         open = true;
         this.started = new Date().getTime();
         pollMessage = new EmbedBuilder();
-        pollMessage.setColor(new Color(0x27FAE8));
+        pollMessage.setColor(getColor());
         pollMessage.setTitle(question);
         List<Button> buttons = new ArrayList<>();
         for (PollOption answer : options.values()) {
@@ -164,6 +160,10 @@ public class Poll {
         return question;
     }
 
+    public Color getColor() {
+        return open ? new Color(0x27FAE8) : new Color(0xF43C57);
+    }
+
     public void vote(ButtonInteractionEvent event, PollOption userAnswer, User user) {
         if (!open) {
             event.reply("This poll is closed.").setEphemeral(true).queue();
@@ -185,7 +185,11 @@ public class Poll {
         pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
         event.editMessageEmbeds(pollMessage.build()).queue();
         save();
-        event.reply("You voted for " + userAnswer.getAnswer()).setEphemeral(true).queue();
+//        try {
+//            event.reply("You voted for " + userAnswer.getAnswer()).setEphemeral(true).queue();
+//        } catch (Exception e) {
+//            //ignore
+//        }
     }
 
     private MessageEmbed.Field getOptionField(PollOption answer) {
@@ -231,7 +235,7 @@ public class Poll {
             for (Button button : message.getButtons()) {
                 message.editMessageComponents(ActionRow.of(button.asDisabled())).queue();
             }
-            pollMessage.setColor(new Color(0xF43C57));
+            pollMessage.setColor(getColor());
             pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + getTotalVotes());
             message.editMessageEmbeds(pollMessage.build()).queue();
         });
@@ -241,7 +245,7 @@ public class Poll {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Poll Closed (" + question + ")");
-        builder.setColor(new Color(0xF43C57));
+        builder.setColor(getColor());
         for (PollOption option : options.values()) {
             builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
         }
@@ -268,9 +272,9 @@ public class Poll {
             file.getParentFile().mkdirs();
         }
         JSONObject object = json();
-        Map<String, Integer> data = new HashMap<>();
+        Map<String, Float> data = new HashMap<>();
         for (PollOption option : options.values()) {
-            if (option.getVotes() > 0) data.put(option.getId() + "", option.getVotes());
+            if (option.getVotes() > 0) data.put(option.getId() + "", (float) option.getVotes());
         }
 
         ChartGenerator.generatePieChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + "/results.png");

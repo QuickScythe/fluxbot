@@ -1,5 +1,6 @@
-package me.quickscythe.vanillaflux.listeners.commands;
+package me.quickscythe.vanillaflux.listeners.commands.poll;
 
+import me.quickscythe.vanillaflux.listeners.commands.CustomCommand;
 import me.quickscythe.vanillaflux.utils.polls.Poll;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import net.dv8tion.jda.api.entities.Guild;
@@ -11,11 +12,11 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PollCloseCommand extends CustomCommand {
+public class CloseCommand extends CustomCommand {
 
     private final char[] ALPHABET = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-    public PollCloseCommand(Guild guild, String label, String desc, OptionData... options) {
+    public CloseCommand(Guild guild, String label, String desc, OptionData... options) {
 
         super(guild, label, desc, options);
     }

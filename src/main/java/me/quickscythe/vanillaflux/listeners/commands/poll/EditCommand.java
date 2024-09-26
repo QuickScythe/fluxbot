@@ -1,22 +1,19 @@
-package me.quickscythe.vanillaflux.listeners.commands;
+package me.quickscythe.vanillaflux.listeners.commands.poll;
 
+import me.quickscythe.vanillaflux.listeners.commands.CustomCommand;
 import me.quickscythe.vanillaflux.utils.polls.Poll;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
-import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
-import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditPollCommand extends CustomCommand {
-    public EditPollCommand(Guild guild, String label, String desc, OptionData... options) {
+public class EditCommand extends CustomCommand {
+    public EditCommand(Guild guild, String label, String desc, OptionData... options) {
         super(guild, label, desc, options);
     }
 

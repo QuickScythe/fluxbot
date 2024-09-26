@@ -1,28 +1,31 @@
-package me.quickscythe.vanillaflux.listeners.commands;
+package me.quickscythe.vanillaflux.listeners.commands.poll;
 
+import me.quickscythe.vanillaflux.Bot;
+import me.quickscythe.vanillaflux.listeners.commands.CustomCommand;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.Poll;
 import me.quickscythe.vanillaflux.utils.polls.PollOption;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 
+import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-public class PollVotersCommand extends CustomCommand {
+public class ResultsCommand extends CustomCommand {
 
-    private final char[] ALPHABET = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-    public PollVotersCommand(Guild guild, String label, String desc, OptionData... options) {
-
+    public ResultsCommand(Guild guild, String label, String desc, OptionData... options) {
         super(guild, label, desc, options);
     }
 
@@ -37,10 +40,23 @@ public class PollVotersCommand extends CustomCommand {
             }
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Current votes for poll " + poll.getUid());
-            for (PollOption opt : poll.getOptions().values()) {
-                builder.addField(opt.getAnswer() + "(" + opt.getVotes() + ")", opt.getVoteList().stream().map(Objects::requireNonNull).map(Utils.getGuild()::getMemberById).map(Member::getAsMention).collect(Collectors.joining(", ")), false);
+            builder.setColor(poll.getColor());
+            for (PollOption option : poll.getOptions().values()) {
+                builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
             }
-            event.replyEmbeds(builder.build()).setEphemeral(true).queue();
+            try {
+                InputStream file = URI.create("http://localhost:" + Bot.WEB_PORT() + Bot.API_ENTRY_POINT() + "/polls/" + poll.getUid() + ".png").toURL().openStream();
+                builder.setImage("attachment://" + poll.getUid() + ".png") // we specify this in sendFile as "cat.png"
+                        .setDescription("Poll Results for " + poll.getQuestion());
+//            channel.sendFiles(FileUpload.fromData(file, uid + ".png"))
+//                    .setEmbeds(builder.build()).queue();
+                event.replyEmbeds(builder.build()).addFiles(FileUpload.fromData(file, poll.getUid() + ".png")).setEphemeral(true).queue();
+            } catch (IOException e) {
+                Utils.getLogger().error("Error", e);
+                builder.addField("Error", "Couldn't load image.", false);
+                event.replyEmbeds(builder.build()).setEphemeral(true).queue();
+
+            }
         }
     }
 
@@ -56,11 +72,8 @@ public class PollVotersCommand extends CustomCommand {
                 if (poll.getQuestion().startsWith(event.getFocusedOption().getValue()))
                     if (!completions.contains(choice))
                         completions.add(new Command.Choice(poll.getQuestion(), poll.getUid() + ""));
-
-//                completions.add(new Command.Choice(poll.getUid() + "", poll.getUid() + ""));
             }
             event.replyChoices(completions).queue();
         }
     }
-
 }

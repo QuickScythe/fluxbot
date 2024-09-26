@@ -3,7 +3,8 @@ package me.quickscythe.vanillaflux;
 import json2.JSONObject;
 import me.quickscythe.vanillaflux.listeners.ButtonListener;
 import me.quickscythe.vanillaflux.listeners.MessageListener;
-import me.quickscythe.vanillaflux.listeners.commands.*;
+import me.quickscythe.vanillaflux.listeners.commands.LinkCommand;
+import me.quickscythe.vanillaflux.listeners.commands.poll.*;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.webapp.TokenManager;
@@ -83,14 +84,14 @@ public class Bot {
         });
 
 
-        api.addEventListener(new PollVotersCommand(Utils.getGuild(), "voters", "Check voters for poll",
+        api.addEventListener(new VotersCommand(Utils.getGuild(), "voters", "Check voters for poll",
                 new OptionData(
                         OptionType.STRING,
                         "id",
                         "Message ID of the poll",
                         true,
                         true)));
-        api.addEventListener(new EditPollCommand(Utils.getGuild(), "edit-poll", "Edit a poll",
+        api.addEventListener(new EditCommand(Utils.getGuild(), "edit-poll", "Edit a poll",
                 new OptionData(
                         OptionType.STRING,
                         "id",
@@ -109,7 +110,7 @@ public class Bot {
                         "New option",
                         true,
                         false)));
-        api.addEventListener(new PollCloseCommand(Utils.getGuild(), "close-poll", "Close a poll early.",
+        api.addEventListener(new CloseCommand(Utils.getGuild(), "close-poll", "Close a poll early.",
                 new OptionData(
                         OptionType.STRING,
                         "id",
@@ -191,6 +192,13 @@ public class Bot {
                         false)
 
         ));
+        api.addEventListener(new ResultsCommand(Utils.getGuild(), "poll-results", "Check the results of a poll",
+                new OptionData(
+                        OptionType.STRING,
+                        "id",
+                        "Message ID of the poll",
+                        true,
+                        true)));
         api.addEventListener(new LinkCommand(Utils.getGuild(), "link", "Link your Discord account to the server.",
                 new OptionData(
                         OptionType.STRING,

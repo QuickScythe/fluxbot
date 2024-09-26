@@ -1,7 +1,7 @@
-package me.quickscythe.vanillaflux.listeners.commands;
+package me.quickscythe.vanillaflux.listeners.commands.poll;
 
+import me.quickscythe.vanillaflux.listeners.commands.CustomCommand;
 import me.quickscythe.vanillaflux.utils.Utils;
-import me.quickscythe.vanillaflux.utils.polls.Poll;
 import me.quickscythe.vanillaflux.utils.polls.PollOption;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import net.dv8tion.jda.api.entities.Guild;
