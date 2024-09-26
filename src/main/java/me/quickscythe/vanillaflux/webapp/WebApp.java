@@ -28,6 +28,7 @@ public class WebApp {
         get(Bot.API_ENTRY_POINT() + "/graphs/:graph", (req, res) -> {
             String option1 = "";
             String option2 = "";
+            boolean sort = (req.queryParams("sort") != null && Boolean.parseBoolean(req.queryParams("sort")));
             final long now = new Date().getTime();
             String graph = req.params(":graph");
             String users = req.queryParams("users");
@@ -97,7 +98,7 @@ public class WebApp {
 
                 }
 
-            generateCustomChart(data, option1, option2, now);
+            generateCustomChart(data, option1, option2, now, sort);
 
             try (InputStream imageStream = new FileInputStream(now + ".png")) {
                 res.type("image/png");
@@ -230,7 +231,7 @@ public class WebApp {
     private void generateJumpChart(Map<UUID, JSONObject> data, long now) {
     }
 
-    private void generateCustomChart(Map<UUID, JSONObject> data, String option1, String option2, long timeStamp) {
+    private void generateCustomChart(Map<UUID, JSONObject> data, String option1, String option2, long timeStamp, boolean sort) {
         Map<String, Float> option1Data = new HashMap<>();
 
         for (Map.Entry<UUID, JSONObject> entry : data.entrySet()) {
@@ -271,7 +272,7 @@ public class WebApp {
         else option1 = option1.substring(0, 1).toUpperCase() + option1.substring(1);
         if (option2.equalsIgnoreCase("playtime")) option2 = "Playtime (in Minutes)";
         else option2 = option2.substring(0, 1).toUpperCase() + option2.substring(1);
-        ChartGenerator.generateBarChart(option1 + " vs " + option2, option1Data, "User", option1, timeStamp + ".png");
+        ChartGenerator.generateBarChart(option1 + " vs " + option2, option1Data, "User", option1, timeStamp + ".png", sort);
     }
 
     private String getDataFromUUID(String uuid) {

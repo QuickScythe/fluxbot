@@ -12,6 +12,7 @@ import org.jfree.data.general.DefaultPieDataset;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class ChartGenerator {
@@ -22,13 +23,10 @@ public class ChartGenerator {
             dataset.setValue(entry.getKey(), entry.getValue());
         }
 
-        JFreeChart chart = ChartFactory.createPieChart(
-                title,   // chart title
+        JFreeChart chart = ChartFactory.createPieChart(title,   // chart title
                 dataset, // dataset
                 false,    // include legend
-                false,
-                false
-        );
+                false, false);
 
         PiePlot plot = (PiePlot) chart.getPlot();
         styleChart(chart);
@@ -40,7 +38,6 @@ public class ChartGenerator {
         plot.setLabelFont(new Font("Arial", Font.BOLD, 24));
 
 
-
         try {
             ChartUtils.saveChartAsPNG(new File(filePath), chart, 800, 600);
         } catch (IOException e) {
@@ -48,15 +45,21 @@ public class ChartGenerator {
         }
     }
 
-
-
     public static void generateBarChart(String title, Map<String, Float> data, String xAxis, String yAxis, String filePath) {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Map.Entry<String, Float> entry : data.entrySet()) {
-            dataset.addValue(entry.getValue(), "Votes", entry.getKey());
+        generateBarChart(title, data, xAxis, yAxis, filePath, true);
+    }
+
+    public static void generateBarChart(String title, Map<String, Float> data, String xAxis, String yAxis, String filePath, boolean sort) {
+        DefaultCategoryDataset dataset;
+        if (sort)
+            dataset = sortDataset(data);
+        else {
+            dataset = new DefaultCategoryDataset();
+            for (Map.Entry<String, Float> entry : data.entrySet()) {
+                dataset.addValue(entry.getValue(), "Votes", entry.getKey());
+            }
         }
-        JFreeChart chart = ChartFactory.createBarChart(
-                title,                      // chart title
+        JFreeChart chart = ChartFactory.createBarChart(title,                      // chart title
                 xAxis,                      // x axis label
                 yAxis,                      // y axis label
                 dataset,                    // dataset
@@ -81,4 +84,19 @@ public class ChartGenerator {
         plot.setOutlinePaint(null);
 
     }
+
+    private static DefaultCategoryDataset sortDataset(Map<String, Float> data) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+// Sort data by values in descending order
+        ArrayList<Map.Entry<String, Float>> sortedData = new ArrayList<>(data.entrySet());
+        sortedData.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        // Add sorted data to dataset
+        for (Map.Entry<String, Float> entry : sortedData) {
+            dataset.addValue(entry.getValue(), "sorted", entry.getKey());
+        }
+
+        return dataset;
+    }
+
 }
