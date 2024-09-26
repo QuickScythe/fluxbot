@@ -6,17 +6,17 @@ import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Feedback;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.data.DataManager;
-import me.quickscythe.vanillaflux.utils.polls.PollUtils;
+import me.quickscythe.vanillaflux.utils.polls.charts.ChartGenerator;
+import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import org.eclipse.jetty.server.session.SessionDataMap;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
+import java.util.*;
 
 import static spark.Spark.get;
 import static spark.Spark.port;
@@ -25,6 +25,90 @@ public class WebApp {
 
     public WebApp() {
         port(Bot.WEB_PORT());
+        get(Bot.API_ENTRY_POINT() + "/graphs/:graph", (req, res) -> {
+            String option1 = "";
+            String option2 = "";
+            final long now = new Date().getTime();
+            String graph = req.params(":graph");
+            String users = req.queryParams("users");
+            users = users == null ? "*" : users;
+            List<String> userList = Arrays.asList(users.split(","));
+            Map<UUID, JSONObject> data = new HashMap<>();
+            ResultSet rs = SqlUtils.getDatabase("core").query("SELECT * FROM users");
+            while (rs.next()) {
+                if (!userList.contains("*") && !userList.contains(rs.getString("username")) && !userList.contains(rs.getString("uuid")))
+                    continue;
+                System.out.println(rs.getString("username"));
+                Blob blob = rs.getBlob("json");
+                InputStream inputStream = blob.getBinaryStream();
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[4096];
+                int bytesRead = -1;
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                JSONObject playerData = new JSONObject(outputStream.toString(StandardCharsets.UTF_8));
+                playerData.put("username", rs.getString("username"));
+                data.put(UUID.fromString(rs.getString("uuid")), playerData);
+            }
+
+            if (graph.equalsIgnoreCase("custom")) {
+                option1 = req.queryParams("option1");
+                option2 = req.queryParams("option2");
+                if (option1 == null) {
+                    res.status(400);
+                    return "Missing parameters";
+                }
+
+                if (option2 == null) {
+                    option2 = "playtime";
+                }
+            } else
+                switch (graph) {
+                    case "jumps":
+                        option1 = "jumps";
+                        option2 = "playtime";
+                        break;
+                    case "deaths":
+                        option1 = "deaths";
+                        option2 = "sessions";
+                        break;
+                    case "kd":
+                        option1 = "kills";
+                        option2 = "deaths";
+                        break;
+                    case "playtime":
+                        option1 = "playtime";
+                        option2 = "sessions";
+                        break;
+                    case "kills":
+                        option1 = "kills";
+                        option2 = "sessions";
+                        break;
+                    default:
+                        res.status(400);
+                        res.type("application/json");
+                        JSONObject feedback = new JSONObject();
+                        feedback.put("error", "Invalid graph");
+                        feedback.put("valid_graphs", new JSONArray(Arrays.asList("jumps", "deaths", "kd", "playtime", "kills")));
+                        return feedback.toString(2);
+
+                }
+
+            generateCustomChart(data, option1, option2, now);
+
+            try (InputStream imageStream = new FileInputStream(now + ".png")) {
+                res.type("image/png");
+                return imageStream.readAllBytes();
+            } catch (IOException e) {
+                res.status(404);
+                return "Image not found";
+            }
+
+        });
+
         get(Bot.API_ENTRY_POINT(), (req, res) -> {
             res.type("application/json");
             return Feedback.Errors.json("No UUID provided");
@@ -32,7 +116,7 @@ public class WebApp {
         get(Bot.API_ENTRY_POINT() + "/polls/:action", (req, res) -> {
             String param = req.params(":action");
             res.type("application/json");
-            if(param.endsWith(".png")){
+            if (param.endsWith(".png")) {
                 res.type("image/png");
                 String id = param.split("\\.")[0];
                 try (InputStream imageStream = new FileInputStream("polls/" + id + "/results.png")) {
@@ -45,32 +129,27 @@ public class WebApp {
             }
 
             String content = DataManager.getFileContents(new File("polls/" + param + "/data.json"));
-            if(content == null) return Feedback.Errors.json("Poll not found");
+            if (content == null) return Feedback.Errors.json("Poll not found");
             return content;
 //            if(PollUtils.getPoll(Long.parseLong(param)) == null) return Feedback.Errors.json("Poll not found");
 //            return PollUtils.getPoll(Long.parseLong(param)).json();
 //            return Feedback.Errors.json("No UUID provided");
         });
-        get(Bot.API_ENTRY_POINT() + "/:uuid", (req, res) -> {
-            String param = req.params(":uuid");
-            Utils.getLogger().log("Got a connection");
-            Utils.getLogger().log("Param: " + param);
-            res.type("application/json");
-            try {
-                try {
-                    return Utils.getFluxApi().getPlayerData(UUID.fromString(param)).toString();
-                } catch (IllegalArgumentException ex) {
-                    Utils.getLogger().log("Couldn't find UUID based on " + param);
-                    if (Utils.getFluxApi().searchUUID(param) == null) {
-                        Utils.getLogger().log("User " + param + " not found");
-                        return Feedback.Errors.json("User not found");
-                    }
-                    Utils.getLogger().log("User " + param + " found.");
-                    return Utils.getFluxApi().getPlayerData(Utils.getFluxApi().searchUUID(req.params(":uuid"))).toString();
-                }
-            } catch (SQLException ex) {
-                return Feedback.Errors.json("Internal Server Error: Couldn't connect to SQL Database");
+        get(Bot.API_ENTRY_POINT() + "/:uuid/:data", (req, res) -> {
+
+            JSONObject data = new JSONObject(getDataFromUUID(req.params(":uuid")));
+            JSONObject server_info = data.getJSONObject("server_info");
+            int jumps = 0;
+            int sessions = server_info.getJSONArray("sessions").length();
+            for (int i = 0; i != sessions; i++) {
+                JSONObject session = server_info.getJSONArray("sessions").getJSONObject(i);
+                jumps = jumps + session.getInt("jumps");
             }
+            return "Average Jumps/Session: " + jumps / sessions;
+        });
+        get(Bot.API_ENTRY_POINT() + "/:uuid", (req, res) -> {
+            res.type("application/json");
+            return getDataFromUUID(req.params(":uuid"));
         });
 
 
@@ -146,5 +225,71 @@ public class WebApp {
         });
 
         Utils.getLogger().log("WebApp started on port " + Bot.WEB_PORT(), !Bot.isDebug());
+    }
+
+    private void generateJumpChart(Map<UUID, JSONObject> data, long now) {
+    }
+
+    private void generateCustomChart(Map<UUID, JSONObject> data, String option1, String option2, long timeStamp) {
+        Map<String, Float> option1Data = new HashMap<>();
+
+        for (Map.Entry<UUID, JSONObject> entry : data.entrySet()) {
+            String username = entry.getValue().getString("username");
+            int sessions = entry.getValue().getJSONArray("sessions").length();
+            int option1Value = 0;
+            int option2Value = 0;
+            for (int i = 0; i != sessions; i++) {
+                JSONObject session = entry.getValue().getJSONArray("sessions").getJSONObject(i);
+                if (option1.equalsIgnoreCase("kills") || option2.equalsIgnoreCase("kills")) {
+                    if (session.has("kills")) {
+                        for (String key : session.getJSONObject("kills").keySet()) {
+                            if (key.toLowerCase().contains("enderman")) continue;
+                            if (username.equals("WolfButtercup") && (key.toLowerCase().contains("zombie") || key.toLowerCase().contains("drowned")))
+                                continue;
+                            if (option1.equalsIgnoreCase("kills"))
+                                option1Value = option1Value + session.getJSONObject("kills").getInt(key);
+                            if (option2.equalsIgnoreCase("kills"))
+                                option2Value = option2Value + session.getJSONObject("kills").getInt(key);
+                        }
+                    }
+                }
+
+                if (!option1.equalsIgnoreCase("kills") && session.has(option1))
+                    option1Value = option1Value + session.getInt(option1);
+                if (!option2.equalsIgnoreCase("kills") && !option2.equalsIgnoreCase("sessions") && session.has(option2))
+                    option2Value = option2Value + session.getInt(option2);
+            }
+            if (option2.equalsIgnoreCase("playtime")) option2Value = option2Value / 1000 / 60;
+            if (option1.equalsIgnoreCase("playtime")) option1Value = option1Value / 1000 / 60;
+            if (option2.equalsIgnoreCase("deaths") && option2Value == 0) option2Value = 1;
+            if (option2.equalsIgnoreCase("sessions")) option2Value = sessions;
+            option1Data.put(username, (float) (((float) option1Value) / ((float) option2Value)));
+        }
+
+
+        if (option1.equalsIgnoreCase("playtime")) option1 = "Playtime (in Minutes)";
+        else option1 = option1.substring(0, 1).toUpperCase() + option1.substring(1);
+        if (option2.equalsIgnoreCase("playtime")) option2 = "Playtime (in Minutes)";
+        else option2 = option2.substring(0, 1).toUpperCase() + option2.substring(1);
+        ChartGenerator.generateBarChart(option1 + " vs " + option2, option1Data, "User", option1, timeStamp + ".png");
+    }
+
+    private String getDataFromUUID(String uuid) {
+
+        try {
+            try {
+                return Utils.getFluxApi().getPlayerData(UUID.fromString(uuid)).toString();
+            } catch (IllegalArgumentException ex) {
+                Utils.getLogger().log("Couldn't find UUID based on " + uuid);
+                if (Utils.getFluxApi().searchUUID(uuid) == null) {
+                    Utils.getLogger().log("User " + uuid + " not found");
+                    return Feedback.Errors.json("User not found");
+                }
+                Utils.getLogger().log("User " + uuid + " found.");
+                return Utils.getFluxApi().getPlayerData(Utils.getFluxApi().searchUUID(uuid)).toString();
+            }
+        } catch (SQLException ex) {
+            return Feedback.Errors.json("Internal Server Error: Couldn't connect to SQL Database");
+        }
     }
 }

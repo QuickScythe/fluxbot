@@ -3,7 +3,6 @@ package me.quickscythe.vanillaflux.utils.polls.charts;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -17,9 +16,9 @@ import java.util.Map;
 
 public class ChartGenerator {
 
-    public static void generatePieChart(String title, Map<String, Integer> data, String filePath) {
+    public static void generatePieChart(String title, Map<String, Float> data, String filePath) {
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
-        for (Map.Entry<String, Integer> entry : data.entrySet()) {
+        for (Map.Entry<String, Float> entry : data.entrySet()) {
             dataset.setValue(entry.getKey(), entry.getValue());
         }
 
@@ -51,9 +50,9 @@ public class ChartGenerator {
 
 
 
-    public static void generateBarChart(String title, Map<String, Integer> data, String xAxis, String yAxis, String filePath) {
+    public static void generateBarChart(String title, Map<String, Float> data, String xAxis, String yAxis, String filePath) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Map.Entry<String, Integer> entry : data.entrySet()) {
+        for (Map.Entry<String, Float> entry : data.entrySet()) {
             dataset.addValue(entry.getValue(), "Votes", entry.getKey());
         }
         JFreeChart chart = ChartFactory.createBarChart(
