@@ -11,11 +11,13 @@ import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.*;
 
 import static spark.Spark.get;
@@ -66,37 +68,36 @@ public class WebApp {
                 if (option2 == null) {
                     option2 = "playtime";
                 }
-            } else
-                switch (graph) {
-                    case "jumps":
-                        option1 = "jumps";
-                        option2 = "playtime";
-                        break;
-                    case "deaths":
-                        option1 = "deaths";
-                        option2 = "sessions";
-                        break;
-                    case "kd":
-                        option1 = "kills";
-                        option2 = "deaths";
-                        break;
-                    case "playtime":
-                        option1 = "playtime";
-                        option2 = "sessions";
-                        break;
-                    case "kills":
-                        option1 = "kills";
-                        option2 = "sessions";
-                        break;
-                    default:
-                        res.status(400);
-                        res.type("application/json");
-                        JSONObject feedback = new JSONObject();
-                        feedback.put("error", "Invalid graph");
-                        feedback.put("valid_graphs", new JSONArray(Arrays.asList("jumps", "deaths", "kd", "playtime", "kills")));
-                        return feedback.toString(2);
+            } else switch (graph) {
+                case "jumps":
+                    option1 = "jumps";
+                    option2 = "playtime";
+                    break;
+                case "deaths":
+                    option1 = "deaths";
+                    option2 = "sessions";
+                    break;
+                case "kd":
+                    option1 = "kills";
+                    option2 = "deaths";
+                    break;
+                case "playtime":
+                    option1 = "playtime";
+                    option2 = "sessions";
+                    break;
+                case "kills":
+                    option1 = "kills";
+                    option2 = "sessions";
+                    break;
+                default:
+                    res.status(400);
+                    res.type("application/json");
+                    JSONObject feedback = new JSONObject();
+                    feedback.put("error", "Invalid graph");
+                    feedback.put("valid_graphs", new JSONArray(Arrays.asList("jumps", "deaths", "kd", "playtime", "kills")));
+                    return feedback.toString(2);
 
-                }
+            }
 
             generateCustomChart(data, option1, option2, now, sort);
 
@@ -236,6 +237,7 @@ public class WebApp {
 
         for (Map.Entry<UUID, JSONObject> entry : data.entrySet()) {
             String username = entry.getValue().getString("username");
+            if (!entry.getValue().has("sessions")) continue;
             int sessions = entry.getValue().getJSONArray("sessions").length();
             int option1Value = 0;
             int option2Value = 0;
