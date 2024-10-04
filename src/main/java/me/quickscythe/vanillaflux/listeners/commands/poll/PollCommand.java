@@ -31,6 +31,11 @@ public class PollCommand extends CustomCommand {
                     answers.add(new PollOption(ALPHABET[i], event.getOption("answer" + i).getAsString()));
                 }
             }
+            if(question.length() > 120){
+                event.reply("Question is too long! Must be shorter than 120 characters.").setEphemeral(true).queue();
+                return;
+            }
+
             event.deferReply().queue();
             PollUtils.createPoll(event.getHook(), event.getChannel().asTextChannel(), question, dur, answers);
         }

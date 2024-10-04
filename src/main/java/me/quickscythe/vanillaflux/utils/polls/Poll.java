@@ -267,22 +267,26 @@ public class Poll {
     }
 
     public void save() {
-        File file = new File(PollUtils.getPollFolder(), uid + "/data.json");
-        if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdirs();
-        }
-        JSONObject object = json();
-        Map<String, Float> data = new HashMap<>();
-        for (PollOption option : options.values()) {
-            if (option.getVotes() > 0) data.put(option.getId() + "", (float) option.getVotes());
-        }
+        try {
+            File file = new File(PollUtils.getPollFolder(), uid + "/data.json");
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+            JSONObject object = json();
+            Map<String, Float> data = new HashMap<>();
+            for (PollOption option : options.values()) {
+                if (option.getVotes() > 0) data.put(option.getId() + "", (float) option.getVotes());
+            }
 
-        ChartGenerator.generatePieChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + "/results.png");
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(object.toString(2));
-            Utils.getLogger().log("Poll saved: " + question);
-        } catch (IOException e) {
-            e.printStackTrace();
+            ChartGenerator.generateRingChart("Poll Results", data, PollUtils.getPollFolder() + "/" + getUid() + "/results.png");
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(object.toString(2));
+                Utils.getLogger().log("Poll saved: " + question);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
