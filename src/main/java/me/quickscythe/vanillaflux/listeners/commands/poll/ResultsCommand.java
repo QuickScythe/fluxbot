@@ -38,6 +38,7 @@ public class ResultsCommand extends CustomCommand {
                 event.reply("Poll not found").queue();
                 return;
             }
+            poll.save();
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Current votes for poll " + poll.getUid());
             builder.setColor(poll.getColor());
