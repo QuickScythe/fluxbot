@@ -174,6 +174,58 @@ public class WebApp {
                     return Feedback.Success.json("Valid Token");
                 return Feedback.Errors.json("Invalid token");
             }
+            if (action.equalsIgnoreCase("create_role")) {
+                if (a == null || b == null) return Feedback.Errors.json("Missing parameters");
+                Role role = Utils.getGuild().createRole().setName(a).complete();
+                role.getManager().setHoisted(true).queue();
+                role.getManager().setMentionable(true).queue();
+                role.getManager().setColor(Color.decode(b)).queue();
+//                role.getManager().setColor(Integer.parseInt(b)).queue();
+                System.out.println("Role created: " + role.getName());
+                return Feedback.Success.json(role.getId());
+            }
+            if (action.equalsIgnoreCase("assign_role")) {
+                if (a == null || b == null) return Feedback.Errors.json("Missing parameters");
+                Member mem = Utils.getGuild().getMemberById(Long.parseLong(a));
+                if (mem == null) return Feedback.Errors.json("User not found");
+                Role role = Utils.getGuild().getRoleById(b);
+                if (role == null) return Feedback.Errors.json("Role not found");
+                Utils.getGuild().addRoleToMember(mem, role).queue();
+                return Feedback.Success.json("Role assigned");
+            }
+
+            if (action.equalsIgnoreCase("remove_role")) {
+                if (a == null || b == null) return Feedback.Errors.json("Missing parameters");
+                Member mem = Utils.getGuild().getMemberById(Long.parseLong(a));
+                if (mem == null) return Feedback.Errors.json("User not found");
+                Role role = Utils.getGuild().getRoleById(b);
+                if (role == null) return Feedback.Errors.json("Role not found");
+                Utils.getGuild().removeRoleFromMember(mem, role).queue();
+                return Feedback.Success.json("Role removed");
+            }
+
+            if (action.equalsIgnoreCase("update_role")) {
+                if (a == null || b == null) return Feedback.Errors.json("Missing parameters");
+                Role role = Utils.getGuild().getRoleById(a);
+                if (role == null) return Feedback.Errors.json("Role not found");
+                if (b.equalsIgnoreCase("color")) {
+                    role.getManager().setColor(Color.decode(c)).queue();
+                    return Feedback.Success.json("Role color updated");
+                }
+                if (b.equalsIgnoreCase("name")) {
+                    role.getManager().setName(c).queue();
+                    return Feedback.Success.json("Role name updated");
+                }
+                return Feedback.Errors.json("Invalid parameter");
+            }
+
+            if (action.equalsIgnoreCase("delete_role")) {
+                if (a == null) return Feedback.Errors.json("Missing parameters");
+                Role role = Utils.getGuild().getRoleById(a);
+                if (role == null) return Feedback.Errors.json("Role not found");
+                role.delete().queue();
+                return Feedback.Success.json("Role deleted");
+            }
             if (action.equalsIgnoreCase("join") || action.equalsIgnoreCase("leave")) {
                 //a = discord id, b = username, c = uuid
                 if (a == null && b == null && c == null)
