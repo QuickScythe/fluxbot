@@ -45,6 +45,17 @@ public class PollUtils {
 
     public static Poll createPoll(InteractionHook hook, TextChannel channel, String question, long duration, List<PollOption> options) {
         Poll poll = new Poll(hook, channel, question, duration, options);
+        synchronized (poll){
+            while (poll.getUid() == 0) {
+                try {
+                    poll.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Thread was interrupted", e);
+                }
+            }
+        }
+//polls.put(poll.getUid(), poll);
         polls.put(poll.getUid(), poll);
         return poll;
     }

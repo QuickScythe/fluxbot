@@ -66,6 +66,7 @@ public class ResultsCommand extends CustomCommand {
 
             List<Command.Choice> completions = new ArrayList<>();
             for (Poll poll : PollUtils.getPolls()) {
+                if(completions.size() > 24) break;
                 Command.Choice choice = new Command.Choice(poll.getQuestion(), poll.getUid() + "");
                 if ((poll.getUid() + "").startsWith(event.getFocusedOption().getValue()))
                     completions.add(choice);

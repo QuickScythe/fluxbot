@@ -5,6 +5,8 @@ import json2.JSONObject;
 import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.UID;
 import me.quickscythe.vanillaflux.utils.Utils;
+import me.quickscythe.vanillaflux.utils.polls.Poll;
+import me.quickscythe.vanillaflux.utils.polls.PollOption;
 import me.quickscythe.vanillaflux.utils.polls.PollUtils;
 import me.quickscythe.vanillaflux.utils.sql.SqlDatabase;
 import me.quickscythe.vanillaflux.utils.sql.SqlUtils;
@@ -13,13 +15,10 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLConnection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageListener extends ListenerAdapter {
     @Override
@@ -52,34 +51,6 @@ public class MessageListener extends ListenerAdapter {
             Utils.update();
 
         }
-
-//        if (cmd.equals(Bot.CMD_PREFIX + "api")) {
-//            MessageChannel channel = event.getChannel();
-//            if (args.length >= 2) {
-//                String user = args[1];
-//                try {
-//                    JSONObject json = new JSONObject(Utils.getContext(new URI("https://api.vanillaflux.com/" + user).toURL()));
-//                    json.remove("statistics");
-//                    channel.sendMessage(json.toString()).queue();
-//                } catch (URISyntaxException | MalformedURLException e) {
-//                    Utils.getLogger().error("Some error", e);
-//                }
-//            } else {
-//                channel.sendMessage("There was an error processing that player. Please provide a username or UUID.").queue();
-//            }
-//        }
-
-//        if(cmd.equals(Bot.CMD_PREFIX + "test")){
-//            URI uri = URI.create("http://localhost:8585/app/v1/" + Bot.appToken() + "/join?c=QuickSctythe");
-//            try {
-//                URLConnection conn = uri.toURL().openConnection();
-//                conn.connect();
-//                conn.getContent();
-//            } catch (IOException e) {
-//                Utils.getLogger().error("ERROR",e);
-//            }
-//        }
-
         if(cmd.equals(Bot.CMD_PREFIX() + "allow")){
             if(!Bot.getConfig().has("allow")){
                 Bot.getConfig().put("allow", new JSONArray());

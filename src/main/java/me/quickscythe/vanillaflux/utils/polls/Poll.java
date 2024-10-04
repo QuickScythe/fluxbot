@@ -6,6 +6,7 @@ import me.quickscythe.vanillaflux.Bot;
 import me.quickscythe.vanillaflux.utils.Utils;
 import me.quickscythe.vanillaflux.utils.polls.charts.ChartGenerator;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -26,6 +27,7 @@ import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class Poll {
 
@@ -75,17 +77,6 @@ public class Poll {
 
     }
 
-    public Poll(InteractionHook hook, TextChannel channel, String question, long duration, PollOption... options) {
-        this.channel = channel;
-        this.question = question;
-        this.duration = duration;
-        for (PollOption option : options) {
-            this.options.put(option.getId(), option);
-        }
-        this.open = false;
-        open(hook);
-    }
-
     public Poll(InteractionHook hook, TextChannel channel, String question, long duration, List<PollOption> options) {
         this.channel = channel;
         this.question = question;
@@ -126,8 +117,7 @@ public class Poll {
         pollMessage.setColor(getColor());
         if (open)
             pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: " + total);
-        else
-            pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
+        else pollMessage.setFooter("Poll closed " + Utils.formatTime(started + duration) + ". Votes: " + total);
 
     }
 
@@ -147,10 +137,14 @@ public class Poll {
             buttons.add(button);
         }
         pollMessage.setFooter("Poll open until " + Utils.formatTime(started + duration) + ". Votes: 0");
-        uid = hook.sendMessageEmbeds(pollMessage.build()).addActionRow(buttons).complete().getIdLong();
-        save();
-    }
+        Consumer<Message> success = message -> {
+            setUid(message.getIdLong());
+            save();
+        };
+        if (hook == null) channel.sendMessageEmbeds(pollMessage.build()).addActionRow(buttons).queue(success);
+        else hook.sendMessageEmbeds(pollMessage.build()).addActionRow(buttons).queue(success);
 
+    }
 
     public LinkedHashMap<Character, PollOption> getOptions() {
         return options;
@@ -193,7 +187,7 @@ public class Poll {
     }
 
     private MessageEmbed.Field getOptionField(PollOption answer) {
-        double percent = Utils.formatDecimal((((double) answer.getVotes()) / ((double) getTotalVotes())) * 100D);
+        double percent = answer.getVotes() == 0 ? 0 : Utils.formatDecimal((((double) answer.getVotes()) / ((double) getTotalVotes())) * 100D);
         return new MessageEmbed.Field(":regional_indicator_" + (answer.getId() + "").toLowerCase() + ": " + answer.getAnswer(), answer.getProgressBar(percent) + "  |  **" + percent + "%**  _(" + answer.getVotes() + ")_", false);
 
     }
@@ -247,7 +241,7 @@ public class Poll {
         builder.setTitle("Poll Closed (" + question + ")");
         builder.setColor(getColor());
         for (PollOption option : options.values()) {
-            builder.addField("(" + option.getId() + ") " + option.getAnswer(), option.getVotes() + " votes", false);
+            builder.addField(":regional_indicator_" + (option.getId() + "").toLowerCase() + ": " + option.getAnswer() , option.getVotes() + " votes", false);
         }
         Button button = Button.link(poll_link, "Go to poll");
 //        builder.addField("poll-" + uid, "This poll has been closed. Results are as follows:", false);
@@ -267,6 +261,10 @@ public class Poll {
     }
 
     public void save() {
+        if (uid == 0) {
+            Utils.getLogger().error("Poll has not been initialized yet. Cannot save.");
+            return;
+        }
         try {
             File file = new File(PollUtils.getPollFolder(), uid + "/data.json");
             if (!file.getParentFile().exists()) {
@@ -327,6 +325,13 @@ public class Poll {
 
     public long getUid() {
         return uid;
+    }
+
+    private void setUid(long idLong) {
+        this.uid = idLong;
+        synchronized (this) {
+            notifyAll();
+        }
     }
 
     public PollOption getOption(char id) {
