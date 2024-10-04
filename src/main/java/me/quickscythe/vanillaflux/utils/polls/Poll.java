@@ -192,7 +192,6 @@ public class Poll {
 
     }
 
-
     private int getTotalVotes() {
         int votes = 0;
         for (PollOption option : options.values()) {
@@ -200,7 +199,6 @@ public class Poll {
         }
         return votes;
     }
-
 
     public boolean isOpen() {
         return open;

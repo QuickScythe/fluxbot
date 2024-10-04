@@ -21,6 +21,22 @@ import java.util.Map;
 
 public class ChartGenerator {
 
+    private static final Color[] COLORS = new Color[]{
+            new Color(0x61EA63),
+            new Color(0x0EE3FF),
+            new Color(0x2697DD),
+            new Color(0xEFEB52),
+            new Color(0x9467bd),
+            new Color(0x8c564b),
+            new Color(0xe377c2),
+            new Color(0x7f7f7f),
+            new Color(0xbcbd22),
+            new Color(0x17becf),
+            new Color(0xff9896),
+            new Color(0x9467bd),
+            new Color(0xc5b0d5),
+            new Color(0x8c564b)};
+
     public static void generatePieChart(String title, Map<String, Float> data, String filePath) {
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
         for (Map.Entry<String, Float> entry : data.entrySet()) {
