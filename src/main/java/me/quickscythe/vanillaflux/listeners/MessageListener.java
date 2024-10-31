@@ -37,6 +37,11 @@ public class MessageListener extends ListenerAdapter {
             Utils.runInactiveSearch();
         }
 
+        if (cmd.equals(Bot.CMD_PREFIX() + "env")) {
+            event.getChannel().sendMessage("Running in " + (Bot.DEBUG() ? "debug" : "production") + " mode.").queue();
+            Utils.runInactiveSearch();
+        }
+
         if (cmd.equals(Bot.CMD_PREFIX() + "closepoll")) {
             if (args.length < 2) {
                 event.getChannel().sendMessage("Usage: `" + Bot.CMD_PREFIX() + "closepoll <uid>`").queue();

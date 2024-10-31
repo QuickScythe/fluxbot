@@ -17,6 +17,9 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.*;
 
@@ -89,6 +92,16 @@ public class WebApp {
                     option1 = "kills";
                     option2 = "sessions";
                     break;
+                case "test":
+                    generateLineChart(data, now, sort);
+
+                    try (InputStream imageStream = new FileInputStream(now + ".png")) {
+                        res.type("image/png");
+                        return imageStream.readAllBytes();
+                    } catch (IOException e) {
+                        res.status(404);
+                        return "Image not found";
+                    }
                 default:
                     res.status(400);
                     res.type("application/json");
@@ -278,10 +291,33 @@ public class WebApp {
             return feedback;
         });
 
-        Utils.getLogger().log("WebApp started on port " + Bot.WEB_PORT(), !Bot.isDebug());
+        Utils.getLogger().log("WebApp started on port " + Bot.WEB_PORT(), !Bot.DEBUG());
     }
 
-    private void generateJumpChart(Map<UUID, JSONObject> data, long now) {
+    private void generateLineChart(Map<UUID, JSONObject> data, long now, boolean sort) {
+        Map<String, Map<Long, Float>> data2 = new HashMap<>();
+        for (Map.Entry<UUID, JSONObject> entry : data.entrySet()) {
+            String username = entry.getValue().getString("username");
+            if (!entry.getValue().has("sessions")) continue;
+            int sessions = entry.getValue().getJSONArray("sessions").length();
+            if(!data2.containsKey(username))
+                data2.put(username, new HashMap<>());
+            for (int i = 0; i != sessions; i++) {
+                JSONObject session = entry.getValue().getJSONArray("sessions").getJSONObject(i);
+                long epochTime = session.getLong("time_joined"); // Example epoch time in seconds
+                LocalDate date = Instant.ofEpochSecond(epochTime)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                long day = date.getDayOfYear();
+                System.out.println(username + ": " + epochTime + " (" + day + ")");
+                Map<Long, Float> map = data2.get(username);
+                if(map.containsKey(day))
+                    data2.get(username).put(day, map.get(day)+ session.getInt("jumps"));
+                else data2.get(username).put(day, (float) session.getInt("jumps"));
+                System.out.println(username + " jumps for " + day + " is " + map.get(day));
+            }
+        }
+        ChartGenerator.generateLineChart("Test", data2, "Day of Year","Jumps On Day",now + ".png");
     }
 
     private void generateCustomChart(Map<UUID, JSONObject> data, String option1, String option2, long timeStamp, boolean sort) {

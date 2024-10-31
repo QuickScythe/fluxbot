@@ -35,7 +35,6 @@ public class Bot {
     private static String APP_TOKEN;
     private static int WEB_PORT = 8585;
     private static int TOKEN_VALID_TIME = 1;
-    private static boolean DEBUG = false;
     private static JSONObject CONFIG;
 
     public static void main(String[] args) throws InterruptedException {
@@ -70,7 +69,7 @@ public class Bot {
             throw new RuntimeException("Bot token not found in config file.");
         }
         BOT_TOKEN = CONFIG.getString("bot_token");
-        if (BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
+//        if (BOT_TOKEN.startsWith("ODg1Mz") && BOT_TOKEN.endsWith("kfCA0")) DEBUG = true;
         JDA api = JDABuilder.createDefault(BOT_TOKEN, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
         api.awaitReady();
         Utils.init(api);
@@ -251,8 +250,8 @@ public class Bot {
         }
     }
 
-    public static boolean isDebug() {
-        return DEBUG;
+    public static boolean DEBUG() {
+        return CONFIG.has("debug") && CONFIG.getBoolean("debug");
     }
 
     public static long getInactiveEpochTime() {

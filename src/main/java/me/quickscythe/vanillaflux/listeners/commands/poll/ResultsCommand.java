@@ -12,10 +12,8 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -38,7 +36,7 @@ public class ResultsCommand extends CustomCommand {
                 event.reply("Poll not found").queue();
                 return;
             }
-            poll.save();
+            if (!poll.isOpen()) poll.save();
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Current votes for poll " + poll.getUid());
             builder.setColor(poll.getColor());
@@ -67,10 +65,9 @@ public class ResultsCommand extends CustomCommand {
 
             List<Command.Choice> completions = new ArrayList<>();
             for (Poll poll : PollUtils.getPolls()) {
-                if(completions.size() > 24) break;
+                if (completions.size() > 24) break;
                 Command.Choice choice = new Command.Choice(poll.getQuestion(), poll.getUid() + "");
-                if ((poll.getUid() + "").startsWith(event.getFocusedOption().getValue()))
-                    completions.add(choice);
+                if ((poll.getUid() + "").startsWith(event.getFocusedOption().getValue())) completions.add(choice);
                 if (poll.getQuestion().startsWith(event.getFocusedOption().getValue()))
                     if (!completions.contains(choice))
                         completions.add(new Command.Choice(poll.getQuestion(), poll.getUid() + ""));

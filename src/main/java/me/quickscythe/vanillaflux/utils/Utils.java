@@ -43,6 +43,8 @@ public class Utils {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
     private static final DecimalFormat df = new DecimalFormat("#.00");
 
+//    private static long reactRoleMessageId = 0;
+
     public static void _before_init() {
         LOG = new BotLogger("FluxApi");
     }
@@ -54,6 +56,12 @@ public class Utils {
         core = SqlUtils.getDatabase("core");
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new Heartbeat(), convertTime(10, TimeUnit.SECONDS), convertTime(10, TimeUnit.SECONDS));
+
+        //todo Check for existing react role message
+        // if not found, create one. Save it
+        // if found, edit to verify roles are still valid
+        // set up resct listener
+
 
 //        timer.schedule(new DailyCheck(timer), convertTime(10, TimeUnit.SECONDS));
     }
