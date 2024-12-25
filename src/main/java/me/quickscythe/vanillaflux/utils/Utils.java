@@ -26,7 +26,6 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -35,13 +34,13 @@ import java.util.regex.Pattern;
 
 public class Utils {
 
+    private static final List<UID> uids = new ArrayList<>();
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
+    private static final DecimalFormat df = new DecimalFormat("#.00");
     private static SqlDatabase core;
     private static JDA api;
     private static BotLogger LOG;
     private static Api fluxApi;
-    private static final List<UID> uids = new ArrayList<>();
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy, hh:mm a");
-    private static final DecimalFormat df = new DecimalFormat("#.00");
 
 //    private static long reactRoleMessageId = 0;
 
@@ -178,21 +177,22 @@ public class Utils {
                     getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                     return;
                 }
-                try{
-                Member member = getGuild().retrieveMemberById(userId).complete();
-                if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
-                    if (member != null) {
-                        getGuild().addRoleToMember(member, role).complete();
-                        getLogger().log(member.getEffectiveName() + " has been made inactive.", true);
-                    } else getCommandsChannel().sendMessage("Error..").queue();
-                } else {
+                try {
+                    Member member = getGuild().retrieveMemberById(userId).complete();
+                    if (now - Long.parseLong(rs.getString("last_seen")) >= Bot.getInactiveEpochTime()) {
+                        if (member != null) {
+                            if (member.getRoles().contains(role)) continue;
+                            getGuild().addRoleToMember(member, role).complete();
+                            getLogger().log(member.getEffectiveName() + " has been made inactive.", true);
+                        } else getCommandsChannel().sendMessage("Error..").queue();
+                    } else {
 
-                    if (member.getRoles().contains(role)) {
-                        getGuild().removeRoleFromMember(member, role).complete();
-                        getLogger().log(member.getEffectiveName() + " has been made active again", true);
+                        if (member.getRoles().contains(role)) {
+                            getGuild().removeRoleFromMember(member, role).complete();
+                            getLogger().log(member.getEffectiveName() + " has been made active again", true);
+                        }
                     }
-                }
-            } catch (ErrorResponseException ex){
+                } catch (ErrorResponseException ex) {
                     getLogger().log("Error finding user. (" + rs.getString("discord_id") + ")", true);
                 }
             }
@@ -268,7 +268,7 @@ public class Utils {
                 remove_tokens.add(token.getToken());
             }
         }
-        for(String token : remove_tokens){
+        for (String token : remove_tokens) {
             TokenManager.removeToken(token);
         }
     }
@@ -277,7 +277,7 @@ public class Utils {
         return Instant.ofEpochMilli(l).atZone(ZoneId.systemDefault()).format(formatter);
     }
 
-    public static double formatDecimal(double d){
+    public static double formatDecimal(double d) {
         return Double.parseDouble(df.format(d));
     }
 }
